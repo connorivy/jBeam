@@ -1,0 +1,686 @@
+{% extends "beam/base.html" %}
+{% load static %}
+{% block threejs %}
+
+<script type="module">
+    // import * as THREE from "{% static 'node_modules/three/build/three.module.js'%}";
+    // import { MapControls } from "{% static 'node_modules/three/examples/jsm/controls/OrbitControls.js' %}";
+    // import { GUI } from "{% static 'node_modules/three/examples/jsm/libs/dat.gui.module.js'%}";
+    // import { Line2 } from "{% static 'node_modules/three/examples/jsm/lines/Line2.js'%}";
+    // import { LineMaterial } from "{% static 'node_modules/three/examples/jsm/lines/LineMaterial.js'%}";
+    // import { BufferGeometryUtils } from "{% static 'node_modules/three/examples/jsm/utils/BufferGeometryUtils.js'%}";
+    // import { GLTFLoader } from "{% static 'node_modules/three/examples/jsm/loaders/GLTFLoader.js'%}";
+
+    import * as THREE from 'https://cdn.skypack.dev/three@0.130.1';
+    import { GUI } from 'https://cdn.skypack.dev/three@0.130.1/examples/jsm/libs/dat.gui.module.js';
+    import { MapControls } from 'https://cdn.skypack.dev/three@0.130.1/examples/jsm/controls/OrbitControls.js';
+    import { Line2 } from 'https://cdn.skypack.dev/three@0.130.1/examples/jsm/lines/Line2.js';
+    import { LineMaterial } from 'https://cdn.skypack.dev/three@0.130.1/examples/jsm/lines/LineMaterial.js';
+    import { LineGeometry } from 'https://cdn.skypack.dev/three@0.130.1/examples/jsm/lines/LineGeometry.js';
+    import { BufferGeometryUtils } from 'https://cdn.skypack.dev/three@0.130.1/examples/jsm/utils/BufferGeometryUtils.js';
+    import { GLTFLoader } from 'https://cdn.skypack.dev/three@0.130.1/examples/jsm/loaders/GLTFLoader.js';
+    
+
+    let camera, controls, scene, renderer;
+    let stats, gpuPanel;
+    let INTERSECTED, CLICKED;
+    let lineMat;
+
+    let beam;
+    let beamHeight = 8;
+    let coneHeight = -10;
+    let cylheight_max = 25;
+    let cylheight_min = 10;
+    let cylThickness = .5;
+
+    let colorList = [
+        0xFFFFB300, //Vivid Yellow
+        0xFF803E75, //Strong Purple
+        0xFFFF6800, //Vivid Orange
+        0xFFA6BDD7, //Very Light Blue
+        0xFFC10020, //Vivid Red
+        0xFFCEA262, //Grayish Yellow
+        0xFF817066, //Medium Gray
+
+        //The following will not be good for people with defective color vision
+        0xFF007D34, //Vivid Green
+        0xFFF6768E, //Strong Purplish Pink
+        // 0xFF00538A, //Strong Blue
+        0xFFFF7A5C, //Strong Yellowish Pink
+        0xFF53377A, //Strong Violet
+        0xFFFF8E00, //Vivid Orange Yellow
+        0xFFB32851, //Strong Purplish Red
+        0xFFF4C800, //Vivid Greenish Yellow
+        0xFF7F180D, //Strong Reddish Brown
+        0xFF93AA00, //Vivid Yellowish Green
+        0xFF593315, //Deep Yellowish Brown
+        0xFFF13A13, //Vivid Reddish Orange
+        0xFF232C16, //Dark Olive Green
+
+        // 0xFFA6BDD7, //Very Light Blue
+        // 0xFFFFB300, //Vivid Yellow
+        // 0xFFC10020, //Vivid Red
+    ];
+
+    class Beam {
+        constructor(L, E, I, A, Lcant, Rcant, left_support_type, right_support_type) {
+            // This beam class assumes there are only two supports for the beam
+
+
+            // Beam object
+            // L = total length
+            // E = Modulus of elasticity
+            // I = Moment of inertia
+            // A = Area
+            // Lcant = Left cantilever length
+            // Rcant = Right cantilever length
+            // this.left_support_restraints = [Vx, Vy, Vz, Mx, My, Mz]
+            // where 
+
+            // this.PLs = list of point load objects
+            // this.DLs = list of distributed load objects
+            // this.POIs = list of distances that are points of interest where cuts will be made to solve for internal forces 
+
+            this.L = L;
+            this.E = E;
+            this.I = I;
+            this.A = A;
+            this.Lcant = Lcant;
+            this.Rcant = Rcant;
+            this.L_btwn_supports = this.L - this.Lcant - this.Rcant;
+            this.left_support_restraints = left_support_type;
+            this.left_support_type = right_support_type;
+            this.PLs = [];
+            this.DLs = [];
+            this.POIs = [];
+            this.clickColor = new THREE.Color(0x0000ff);
+            this.maxPL = 0;
+            this.maxDL = 0;
+        }
+
+        defineLoad(magnitude, startLocation, endLocation=null, endMagnitude=null) {
+            var rand = Math.round(colorList.length * Math.random());
+            var color = colorList[rand];
+            colorList.splice(rand,1);
+
+            // determine if point or dist load
+            if (endLocation) {
+                var load = new Dist(color, magnitude, startLocation, endLocation);
+                this.DLs.push(load);
+                load.index = this.DLs.length-1;
+                load.type = 'dist';
+
+                if (Math.abs(load.magnitude) > this.maxDL) {
+                    this.maxDL = Math.abs(load.magnitude);
+                    load.isMaxDL = true;
+                    for (var i=0;i<this.DLs.length-1; i++) {
+                        this.DLs[i].isMaxDL = false;
+                    }
+                    // redraw other point loads
+                } else {load.isMaxDL = false;}
+            }
+            else {
+                var load = new Point(color, magnitude, startLocation);
+                this.PLs.push(load);
+                load.index = this.PLs.length-1;
+                load.type = 'point';
+
+                if (Math.abs(load.magnitude) > this.maxPL) {
+                    this.maxPL = Math.abs(load.magnitude);
+                    load.isMaxPL = true;
+                    for (var i=0;i<this.PLs.length-1; i++) {
+                        this.PLs[i].isMaxPL = false;
+                    }
+                    // redraw other point loads
+                } else {load.isMaxPL = false;}
+            }
+        
+            // material
+            load.arrowMat = new THREE.MeshBasicMaterial( {color: load.color} );
+            // define og_color and highlighted color
+            load.og_color = load.arrowMat.color.getHex();
+            load.highlight_color = new THREE.Color(load.og_color)
+            load.highlight_color.lerp(this.clickColor, .5)
+            console.log(load)
+
+        }
+
+        drawLoad(load) {
+            var click = false;
+            if (load.mesh) {
+                if (CLICKED==load.mesh) {
+                    click = true;
+                }
+                load.mesh.geometry.dispose();
+                load.mesh.material.dispose();
+                scene.remove( load.mesh );
+            }
+            var cylGeo = [];
+            var coneGeo = [];
+            var numArrows = 0;
+            var multiplier = 0;
+            const canvas = renderer.domElement;
+            const width = canvas.clientWidth;
+            var widthLoad = 0;
+
+            if (load.endLocation) {
+                widthLoad = Math.abs(load.endLocation - load.startLocation);
+                numArrows = Math.floor(width / (widthLoad * 1.8)) - 1;
+
+                if (load.isMaxDL) {
+                    set_max_dist_load(this);
+                }
+                multiplier = cylheight_max / this.maxDL;
+
+                // add top bar piece to dist load
+                cylGeo.push(new THREE.CylinderGeometry( cylThickness, cylThickness, widthLoad, 40 ));
+                cylGeo.at(-1).rotateZ(Math.PI / 2);
+                cylGeo.at(-1).translate((load.startLocation+load.endLocation)/2, 0, beamHeight + -1 * coneHeight + load.magnitude*multiplier + cylheight_min);
+
+            } else {
+                // needs to be set to zero to make the loop work even though there will be one arrow
+                numArrows = 0;
+
+                // if load is currently or should now be setting the height limit, redraw the rest of the beams
+                if (load.isMaxPL || load.magnitude > this.maxPL) {
+                    set_max_point_load(this);
+                    redrawPointLoads(this, load.index);
+                }
+                multiplier = cylheight_max / this.maxPL;
+            }
+
+            for (let i = 0; i <= ( numArrows + 1 ); i++) {
+                // geometries
+                cylGeo.push(new THREE.CylinderGeometry( cylThickness, cylThickness, load.magnitude*multiplier + cylheight_min, 40 ));
+                coneGeo.push(new THREE.ConeGeometry( 3, coneHeight, 20 ));
+
+                // orientation of geometries
+                coneGeo.at(-1).rotateX(Math.PI / 2);
+                coneGeo.at(-1).translate(load.startLocation + i * widthLoad / (numArrows+1), 0, -1 * coneHeight / 2 + beamHeight);
+
+                cylGeo.at(-1).rotateX(Math.PI / 2);
+                cylGeo.at(-1).translate(load.startLocation + i * widthLoad / (numArrows+1), 0, beamHeight + -1 * coneHeight + (load.magnitude * multiplier + cylheight_min)/ 2);
+            }
+            
+            // combine geometries into single geometry and create mesh object
+            load.arrowGeo = BufferGeometryUtils.mergeBufferGeometries(cylGeo.concat(coneGeo));
+            load.mesh = new THREE.Mesh(load.arrowGeo, load.arrowMat)
+
+            // assign index in loads to mesh userData
+            load.mesh.userData.index = load.index;
+            load.mesh.userData.type = load.type;
+            load.mesh.userData.og_color = load.og_color;
+            load.mesh.userData.highlight_color = load.highlight_color;
+
+            // add arrow mesh object to scene
+            scene.add( load.mesh );
+
+            if (click) {
+                CLICKED = load.mesh;
+            }
+        }
+
+        get beamReactions() {
+            var rxn_left = 0;
+            var rxn_right = 0;
+            for (var i=0; i<this.PLs.length; i++) {
+                var fromSingleLoad = this.PLs[i].reactionsFromSinglePointLoad;
+                rxn_left += fromSingleLoad.left;
+                rxn_right += fromSingleLoad.right;
+            }
+            return rxn_left, rxn_right
+        }
+    }
+
+    class Point {
+        constructor(color, magnitude, location) {
+            this.startLocation = location;
+            this.magnitude = magnitude;
+            this.color = color;
+            this.beam = beam;
+            this.type = 'point';
+
+            // // if x is greater then L minus right cantilever, it's on the right cantilever
+            // if (this.x > this.beam.L-this.beam.Rcant) pass
+
+            // // if x less than len(left cantilever), it's on the left cantilever
+            // else if (this.x < this.beam.Lcant)
+            //     pass
+
+            // // else the load is between the supports
+            // else pass
+
+            this.a = this.x - this.beam.Lcant    
+            this.b = this.beam.L_btwn_supports - this.a
+            this.rxn_left = (this.p * this.b) / (this.beam.L) // untested
+            this.rxn_right = (this.p * this.a) / (this.beam.L) // untested
+
+            // this.beam.addPointLoad(this)
+        }
+
+        get reactionsFromSinglePointLoad() {
+            this.a = this.startLocation - this.beam.Lcant;
+            this.b = this.beam.L_btwn_supports - this.a;
+
+            return {
+                left: (this.magnitude * this.b) / (this.beam.L),
+                right: (this.magnitude * this.a) / (this.beam.L)
+            };
+        }
+
+
+        // get arrowHeight() {
+        //     return this._carname;
+        // }
+        // set arrowHeight(x) {
+        //     this._carname = x;
+        // }
+    }
+    class Dist {
+        constructor(color, magnitude, startLocation, endLocation, endMagnitude=null) {
+            this.color = color;
+            this.magnitude = magnitude;
+            this.startLocation = startLocation;
+            this.endLocation = endLocation;
+            this.endMagnitude = endMagnitude;
+        }
+    }
+    // let globals = new Globals();
+
+    const pointer = new THREE.Vector2();
+    const mouse = new THREE.Vector2();
+    const raycaster = new THREE.Raycaster();
+
+    init();
+    // render(); // remove when using next line for animation loop (requestAnimationFrame)
+    animate();
+
+    function init() {
+
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color( 0xcccccc );
+        // scene.fog = new THREE.FogExp2( 0xcccccc, 0.002 );
+        const canvas = document.querySelector("#content canvas");
+
+        renderer = new THREE.WebGLRenderer( { canvas: canvas, antialias: true } );
+
+        const loader = new GLTFLoader();
+        loader.load("{% static 'beam/scene.gltf' %}", function(gltf) {
+            var model = gltf.scene
+            var metal = new THREE.MeshStandardMaterial( {
+
+                color: 0xffffff,
+
+                roughness: .8,
+                metalness: 1,
+
+                // roughnessMap: roughnessMap,
+                // metalnessMap: metalnessMap,
+
+                // envMap: envMap, // important -- especially for metals!
+                // envMapIntensity: envMapIntensity
+
+            } );
+            model.traverse((o) => {
+                if (o.isMesh) o.material = metal;
+            });
+            model.rotation.x = Math.PI / 2
+            // model.rotation.y = 9/16 * Math.PI
+            model.rotation.y = Math.PI / 2
+
+            // model.scale(new THREE.Vector3(3,1,1))
+
+            scene.add(model)
+        }, undefined, function ( error ) {
+
+            console.error( error );
+
+        } );
+
+
+        // There's no reason to set the aspect here because we're going
+        // to set it every frame anyway so we'll set it to 2 since 2
+        // is the the aspect for the canvas default size (300w/150h = 2)
+        camera = new THREE.PerspectiveCamera(5.5, 2, 1, 5000);
+        camera.up = new THREE.Vector3( 0, 0, 1 );
+        camera.position.set( -500, -1000, 235 );
+        // camera.position.set(0,-200,0);
+
+        var controls = new MapControls(camera, renderer.domElement);
+        controls.screenSpacePanning = true;
+        controls.enablePan = true;
+
+        controls.maxPolarAngle = Math.PI / 2;
+        controls.mouseButtons = {MIDDLE: THREE.MOUSE.RIGHT, RIGHT: THREE.MOUSE.RIGHT};
+
+
+        // scene.add(new THREE.GridHelper(1000, 100));
+
+        // Beam(L, E, I, A, Lcant, Rcant, left_support_type, right_support_type)
+        beam = new Beam(15, 29000, 2900, 16, 0, 0, 'pin', 'pin');
+
+        // draw arrows 
+        {% for pl in point_loads %}
+        beam.defineLoad({{ pl.magnitude }}, {{ pl.location}})
+        beam.drawLoad(beam.PLs.at(-1))
+        {% endfor %}
+        
+        
+        // beam.defineLoad(25,10);
+        // beam.defineLoad(40,30);
+        // beam.defineLoad(20, -100, -5);
+        // beam.drawLoad(beam.PLs.at(-1))
+        // beam.drawLoad(beam.PLs.at(-2))
+        // beam.drawLoad(beam.DLs.at(-1))
+
+        // // draw shear and bending diagram
+        // // materials
+        lineMat = new LineMaterial( {
+            color: 0xffffff,
+            linewidth: 3, // in pixels
+            vertexColors: false,
+            //resolution:  // to be set by renderer, eventually
+            dashed: false,
+            alphaToCoverage: true,
+        } );
+
+
+        // world
+
+        const geometry = new THREE.ConeGeometry( 5, 10, 4 );
+        const material = new THREE.MeshStandardMaterial( {color: 0x00ff00, metalness: 0.5, roughness: 0.5,} );
+        var cylinder = new THREE.Mesh( geometry, material );
+        cylinder.position.x = -100
+        cylinder.position.z = -12
+        cylinder.rotation.x = Math.PI / 2;
+        cylinder.rotation.y = Math.PI / 8;
+        scene.add( cylinder );
+
+        var cylinder2 = new THREE.Mesh( geometry, material );
+        cylinder2.position.x = 100
+        cylinder2.position.z = -13
+        cylinder2.rotation.x = Math.PI / 2;
+        cylinder2.rotation.y = Math.PI / 8;
+        scene.add( cylinder2 );
+
+
+        // camera.lookAt(new THREE.Vector3( -15, 0, 0 ));
+        resizeCanvasToDisplaySize()
+
+        // lights
+
+        const dirLight1 = new THREE.DirectionalLight( 0xffffff );
+        dirLight1.position.set( 0, -100, 100 );
+        scene.add( dirLight1 );
+
+        // const dirLight2 = new THREE.DirectionalLight( 0x002288 );
+        // dirLight2.position.set( - 1, - 1, - 1 );
+        // scene.add( dirLight2 );
+
+        const ambientLight = new THREE.AmbientLight( 0x999999 );
+        scene.add( ambientLight );
+
+        // const directionalLightHelper = new THREE.PointLightHelper(dirLight1, 20);
+        // scene.add( directionalLightHelper );
+
+        //
+
+        window.addEventListener( 'resize', resizeCanvasToDisplaySize );
+        document.addEventListener( 'mousemove', onMouseMove );
+        canvas.addEventListener( 'click', onClick );
+        document.addEventListener('keyup', onKeyUp);
+        drawShearDiagram(beam);
+
+        // const gui = new GUI();
+        // gui.add( controls, 'screenSpacePanning' );
+
+    }
+
+    function set_max_point_load(beam) {
+        var max=0;
+        var maxIndex=0;
+        for (var i=0; i<beam.PLs.length; i++) {
+            beam.PLs[i].isMaxPL = false;
+            if (beam.PLs[i].magnitude > max) {
+                max = beam.PLs[i].magnitude;
+                maxIndex = i;
+            }
+        }
+        beam.maxPL = max;
+        beam.PLs[maxIndex].isMaxPL = true;
+    }
+
+    function redrawPointLoads(beam, index) {
+        for (var i=0; i<beam.PLs.length; i++) {
+            if (!i==index){
+                beam.drawLoad(beam.PLs[i]);
+            }
+        }
+    }
+
+    function set_max_dist_load(beam) {
+        var max=0;
+        var maxIndex=0;
+        for (var i=0; i<beam.DLs.length; i++) {
+            if (beam.DLs[i].magnitude > max) {
+                max = beam.DLs[i].magnitude;
+                maxIndex = i;
+            }
+        }
+        if (!beam.DLs[maxIndex]) {
+            beam.DLs[maxIndex].isMaxDL = true;
+            for (var i=0; i<beam.DLs.length; i++) {
+                beam.drawLoad(beam.DLs[i]);
+            }
+        }
+        // beam.DLs[maxIndex].isMaxDL = true;
+        beam.maxDL = max;
+    }
+
+    function draw_line(user_points) {
+        // geometries
+        const points = [];
+        for (var i=0; i<user_points.length; i++) {
+            points.push(user_points[i][0],user_points[i][1],user_points[i][2])
+        }
+
+        var lineGeo = new LineGeometry();
+        lineGeo.setPositions(points)
+
+        // lineMat.color.set(color);
+
+        var line = new Line2( lineGeo, lineMat );
+        line.computeLineDistances();
+        line.scale.set( 1, 1, 1 );
+        scene.add( line );
+    }
+
+    function resizeCanvasToDisplaySize() {
+        const canvas = renderer.domElement;
+        // look up the size the canvas is being displayed
+        const width = canvas.clientWidth;
+        const height = canvas.clientHeight;        
+
+        // adjust displayBuffer size to match
+        if (canvas.width !== width || canvas.height !== height) {
+            // you must pass false here or three.js sadly fights the browser
+            renderer.setSize(width, height, false);
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+
+            // update camera position
+            var vFOV = THREE.MathUtils.degToRad( camera.fov ); // convert vertical fov to radians
+            var desired_screen_width = 220
+            var dist = desired_screen_width / ( 2 * Math.tan(vFOV/2) * camera.aspect )
+
+            var multiplier = dist / 1145 // 1145 is the distance of (-500,-1000,250) from the origin. I'm essentially linearly interpolating the camera on this line
+            camera.position.set( -500*multiplier, -1000*multiplier, 250*multiplier );
+
+            // set matLine resolution
+            lineMat.resolution.set( width, height );
+
+        }
+    }
+
+    function onMouseMove( event ) {
+
+        // calculate mouse position in normalized device coordinates
+        // (-1 to +1) for both components
+
+        var rect = renderer.domElement.getBoundingClientRect();
+
+        mouse.x = ( ( event.clientX - rect.left ) / ( rect.width ) ) * 2 - 1;
+        mouse.y = - ( ( event.clientY - rect.top ) / ( rect.height) ) * 2 + 1;
+
+
+    }
+
+    function onClick( event ) {
+        if (INTERSECTED) {
+            // console.log(INTERSECTED)
+            if (INTERSECTED.userData.type == 'point') var loadList = beam.PLs;
+            else var loadList = beam.DLs;
+
+            if (CLICKED) { 
+                if (CLICKED.userData.type == 'point') var loadList = beam.PLs;
+                else var loadList = beam.DLs;
+                CLICKED.material.color.set( loadList[CLICKED.userData.index].og_color );
+            }
+            CLICKED = INTERSECTED;
+            CLICKED.material.color.set( 0x0000ff );
+
+            // set value of hidden primary key field to the load index
+            $("#form-index").val(CLICKED.userData.index);
+            $('#form-magnitude').val(beam.PLs.at(CLICKED.userData.index).magnitude)
+            $('#form-location').val(beam.PLs.at(CLICKED.userData.index).startLocation)
+        }
+        else if (CLICKED) {
+            if (CLICKED.userData.type == 'point') var loadList = beam.PLs;
+            else var loadList = beam.DLs;
+
+            CLICKED.material.color.set( loadList[CLICKED.userData.index].og_color );
+            CLICKED = null;
+
+            // set value of hidden primary key field to null
+            $("#form-index").val('');
+            $('#form-magnitude').val('')
+            $('#form-location').val('')
+        }
+    }
+
+    function onKeyUp( event ) {
+        // console.log(event.code)
+        if (event.code === "Tab") {
+            console.log('tab');
+        } else if (event.code === 'Slash') {
+            console.log('/')
+            console.log(JSON.stringify(CLICKED))
+            beamReactions()
+        }
+    }
+
+    function animate() {
+
+        requestAnimationFrame( animate );
+
+        //controls.update(); // only required if controls.enableDamping = true, or if controls.autoRotate = true
+
+        render();
+
+    }
+
+
+    function render() {
+        // // main scene
+        // renderer.setViewport( 0, 0, window.innerWidth, window.innerHeight );
+        // update the picking ray with the camera and mouse position
+        raycaster.setFromCamera( mouse, camera );
+
+        // calculate objects intersecting the picking ray
+        const intersects = raycaster.intersectObjects( scene.children );
+
+        // for ( let i = 0; i < intersects.length; i ++ ) {
+
+        //     intersects[ i ].object.material.color.set( 0xff0000 );
+
+        // }
+
+        // turns the topmost raycasted line blue and then turns it back to its OG color
+        if ( intersects.length > 0 ) {
+            // if something is raycasted that is different than what was previously raycasted
+            if ( INTERSECTED != intersects[ 0 ].object ) {
+                // reset old color
+                if ( INTERSECTED ) {
+                    INTERSECTED.material.color.set( loadList[INTERSECTED.userData.index].og_color );
+                }
+                INTERSECTED = intersects[ 0 ].object;
+                if (INTERSECTED.userData.type == 'point') var loadList = beam.PLs;
+                else var loadList = beam.DLs;
+                // if intersected is not clicked, highlight it
+                if (INTERSECTED != CLICKED) INTERSECTED.material.color.set( loadList[INTERSECTED.userData.index].highlight_color );
+            }
+        } else if (INTERSECTED) {
+            // if (INTERSECTED) console.log(beam.PLs[INTERSECTED.userData.index].arrowMat.color.getHex());
+            if (INTERSECTED.userData.type == 'point') var loadList = beam.PLs;
+            else var loadList = beam.DLs;
+
+            if ( INTERSECTED != CLICKED) INTERSECTED.material.color.set( loadList[INTERSECTED.userData.index].og_color );
+            INTERSECTED = null;
+        }            
+
+        renderer.render( scene, camera );
+
+        // console.log(camera.position)
+
+    }
+
+    function beamReactions() {
+        $.ajax({
+                type: 'GET',
+                url: "{% url 'get_diagrams' %}",
+
+                success: function (response) {
+                    console.log(response["left"], response['right']);
+
+                },
+                error: function (response) {
+                    console.log(response)
+                }
+            })
+    }
+
+    $("#sidebar").mouseleave(function (e) {
+        e.preventDefault();
+        // get the point load primary key
+        // var key = $('#form-index').val();
+        var load = beam.PLs.at(CLICKED.userData.index)
+        load.magnitude = parseFloat($('#form-magnitude').val());
+        load.startLocation = parseFloat($('#form-location').val());
+        beam.drawLoad(load)
+
+        // GET AJAX request
+        $.ajax({
+            type: 'POST',
+            url: "{% url 'update_point_load' %}",
+            data: {
+                "magnitude": load.magnitude,
+                'location': load.startLocation,
+                'index': load.index,
+            },
+            success: function (response) {
+                console.log(response["magnitude"]);
+                // part = $(".vendorpart").val(response["part"]);
+                // cost = $(".vendorcost").val(response["cost"]);
+            },
+            error: function (response) {
+                console.log(response)
+            }
+        })
+    });
+    {% block scripts %} {% endblock scripts %}
+
+</script>
+
+{% endblock threejs %}
+
+{% block externalScripts %} {% endblock externalScripts %}
