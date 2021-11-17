@@ -429,7 +429,7 @@
         document.addEventListener( 'mousemove', onMouseMove );
         canvas.addEventListener( 'click', onClick );
         document.addEventListener('keyup', onKeyUp);
-        drawShearDiagram(beam);
+        get_diagrams();
 
         // const gui = new GUI();
         // gui.add( controls, 'screenSpacePanning' );
@@ -634,16 +634,18 @@
 
     }
 
-    function beamReactions() {
+    function get_diagrams() {
         $.ajax({
                 type: 'GET',
                 url: "{% url 'get_diagrams' %}",
 
                 success: function (response) {
-                    console.log(response["left"], response['right']);
-
+                    drawShearDiagram([JSON.parse(response["shear_value_pairs"]), JSON.parse(response['max_shear_value_pairs'])],
+                                    [JSON.parse(response["moment_value_pairs"]), JSON.parse(response['max_moment_value_pairs'])])
+                    //drawShearDiagram([JSON.parse(response["shear_value_pairs"]), JSON.parse(response['max_shear_value_pairs'])])
                 },
                 error: function (response) {
+                    console.log('error')
                     console.log(response)
                 }
             })

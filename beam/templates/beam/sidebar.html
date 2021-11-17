@@ -60,16 +60,16 @@
 
 {% block scripts %} 
 
-function drawShearDiagram(beam) {
+function drawShearDiagram(shearValues, momentValues) {
     var shearCtx = document.getElementById('shearChart').getContext('2d');
     var momentCtx = document.getElementById('momentChart').getContext('2d');
 
     var chartList = [document.getElementById('shearChart'),document.getElementById('momentChart')];
 
-    console.log(beam.beamReactions)
-
-    var shearValues = generateData("Math.sin(x)", 0, 10, .1);
-    var momentValues = generateData("Math.cos(x)", 0, 10, .1);
+    //var shearValues = generateData("Math.sin(x)", 0, 10, .1);
+    //var shearValues = get_diagrams();
+    console.log(shearValues);
+    //var momentValues = generateData("Math.cos(x)", 0, 10, .1);
 
    const tooltipLine = {
        id: 'tooltipLine',
@@ -478,11 +478,11 @@ function drawShearDiagram(beam) {
 
         for (let x = i1; x <= i2; x += step) {
             if (Math.abs(+eval(value).toFixed(4)) >= .999) {
-                ValuesMax.push({x: +x.toFixed(2), y: +eval(value).toFixed(2)}); 
+                ValuesMax.push({'x': +x.toFixed(2), 'y': +eval(value).toFixed(2)}); 
             } else {
-                ValuesMax.push({x: null, y: null});
+                ValuesMax.push({'x': null, 'y': null});
             }
-            Values.push({x: +x.toFixed(2), y: +eval(value).toFixed(2)}); 
+            Values.push({'x': +x.toFixed(2), 'y': +eval(value).toFixed(2)}); 
         }
 
         return [Values, ValuesMax]

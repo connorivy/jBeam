@@ -2,6 +2,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.http.response import JsonResponse
 from .models import *
 from .forms import *
+from symbeam import beam
 
 @csrf_exempt
 def update_point_load(request):
@@ -28,14 +29,23 @@ def get_diagrams(request):
         # beam = request.GET.get("beam", None)
         print('request')
         point_loads = pointLoad.objects.all()
+        user_beam = jBeamObject.objects.first()
 
-        left_rxn = 0 
-        right_rxn = 0
-        for load in point_loads:
-            print(load)
-            new_left, new_right = load.getReactionsFromSinglePointLoad()
-            left_rxn += new_left
-            right_rxn += new_right
+        calc_beam = beam(user_beam.L, x0 = -100)
+        for pl in point_loads:
+            print(pl.location)
+            calc_beam.add_point_load(pl.location, pl.magnitude)
 
-        return JsonResponse({"left_rxn": left_rxn,"right_rxn": right_rxn}, status = 200)
+        calc_beam.add_support(-100, "roller")
+        calc_beam.add_support(100, "pin")
+
+        calc_beam.solve()
+
+        shear_value_pairs, max_shear_value_pairs, moment_value_pairs, max_moment_value_pairs = calc_beam.get_chart_values()
+
+        return JsonResponse({"shear_value_pairs": shear_value_pairs, 
+                            "max_shear_value_pairs": max_shear_value_pairs,
+                             'moment_value_pairs': moment_value_pairs,
+                             'max_moment_value_pairs': max_moment_value_pairs}, status = 200)
+                             
     return JsonResponse({}, status = 400)

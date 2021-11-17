@@ -1,6 +1,6 @@
 from django.db import models
 
-class BeamProperties(models.Model):
+class jBeamObject(models.Model):
     # Beam object
     # L = total length
     # E = Modulus of elasticity
@@ -20,64 +20,6 @@ class BeamProperties(models.Model):
     A = models.DecimalField(max_digits=10, decimal_places=4)
     Lcant = models.DecimalField(max_digits=8, decimal_places=4)
     Rcant = models.DecimalField(max_digits=8, decimal_places=4)
-
-    @property
-    def L_btwn_supports(self):
-        return self.L - self.Lcant - self.Rcant
-
-    # left_support_restraints = left_support_type
-    # left_support_type = right_support_type
-    # PLs = []
-    # DLs = []
-    # POIs = []
-    # maxPL = 0
-    # maxDL = 0 
-
-
-    # def defineLoad(self, color, magnitude, startLocation, endLocation=None, endMagnitude=None):
-    #     # determine if point or dist load
-    #     if endLocation:
-    #         load = Dist(color, magnitude, startLocation, endLocation)
-    #         self.DLs.push(load)
-    #         load.index = self.DLs.length-1
-    #         load.type = 'dist'
-
-    #         if math.abs(load.magnitude) > self.maxDL:
-    #             self.maxDL = math.abs(load.magnitude)
-    #             load.isMaxDL = True
-
-    #             for item in self.DLs:
-    #                 item.isMaxDL = False
-
-    #         else:
-    #             load.isMaxDL = False
-        
-    #     else:
-    #         load = Point(color, magnitude, startLocation)
-    #         self.PLs.push(load)
-    #         load.index = self.PLs.length-1
-    #         load.type = 'point'
-
-    #         if math.abs(load.magnitude) > self.maxPL:
-    #             self.maxPL = math.abs(load.magnitude)
-    #             load.isMaxPL = True
-
-    #             for item in self.PLs:
-    #                 item.isMaxPL = False
-
-    #         else:
-    #             load.isMaxPL = False
-    
-    @property
-    def getBeamReactions(self):
-        rxn_left = 0
-        rxn_right = 0
-        for load in self.PLs:
-            load_rxn_left, load_rxn_right = load.getReactionsFromSinglePointLoad()
-            rxn_left += load_rxn_left
-            rxn_right += load_rxn_right
-
-        return rxn_left, rxn_right
 
 class loadCase(models.Model):
     case_name = models.CharField(max_length=10)
