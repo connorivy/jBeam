@@ -183,6 +183,19 @@ a.article:hover {
     color: #fff !important;
 }
 
+.tooltip:after {
+    bottom: 100%;
+    left: 17px;
+    border: solid #e20074;
+    content: " ";
+    position: absolute;
+    pointer-events: none;
+    border-color: rgba(255, 255, 255, 0);
+    border-bottom-color: #000;
+    border-width: 12px;
+    margin-left: -15px;
+    }
+
 /* ---------------------------------------------------
     CONTENT STYLE
 ----------------------------------------------------- */
