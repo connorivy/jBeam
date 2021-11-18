@@ -60,19 +60,36 @@
 
 {% block scripts %} 
 
-function drawShearDiagram(shearValues, momentValues) {
+function drawShearDiagram(shearValues, momentValues, extremeValues) {
+    /*
+    These are the parameters passed into this function
+    drawShearDiagram([JSON.parse(response["shear_value_pairs"]), JSON.parse(response['max_shear_value_pairs'])],
+                                    [JSON.parse(response["moment_value_pairs"]), JSON.parse(response['max_moment_value_pairs'])],
+                                    [JSON.parse(response["extreme_shear_values"]), JSON.parse(response['extreme_moment_values'])])
+    */
+
     var shearCtx = document.getElementById('shearChart').getContext('2d');
     var momentCtx = document.getElementById('momentChart').getContext('2d');
 
     var chartList = [document.getElementById('shearChart'),document.getElementById('momentChart')];
 
-    //var shearValues = generateData("Math.sin(x)", 0, 10, .1);
-    //var shearValues = get_diagrams();
-    console.log(shearValues);
-    //var momentValues = generateData("Math.cos(x)", 0, 10, .1);
 
    const tooltipLine = {
        id: 'tooltipLine',
+       afterLayout: function (chart) {
+            /*** Set Gradient For Graph ***/
+            var color = chart.data.datasets[0].borderColor
+
+            var zeroColor = Math.abs(extremeValues[chart.id][1]) / (extremeValues[chart.id][0] + Math.abs(extremeValues[chart.id][1]))
+            var gradient = chart.ctx.createLinearGradient(0, chart.chartArea.bottom, 0, chart.chartArea.top);
+            
+            gradient.addColorStop(0, color);
+            gradient.addColorStop(zeroColor, color.replace(/[\d\.]+\)$/g, '0)'));   
+            gradient.addColorStop(1, color);
+
+            chart.data.datasets[0].backgroundColor = gradient;
+
+       },
        afterDraw: function (chart) {
             // this if statement makes it so when a chart is drawn not because of an event trigger, but because of a manual redraw to get rid of vertical lines,
             // it won't get stuck in an infinite loop of calling other functinos and redrawing them
@@ -105,7 +122,7 @@ function drawShearDiagram(shearValues, momentValues) {
                 ctx.moveTo(chart.options.tooltipLine.x, currentChart.options.tooltipLine.y);
                 ctx.lineTo(chart.options.tooltipLine.x, chart.chartArea.bottom);
                 ctx.lineWidth = 2;
-                ctx.strokeStyle = 'red';
+                ctx.strokeStyle = 'grey';
                 ctx.stroke();
                 ctx.restore();
             }
@@ -171,7 +188,7 @@ function drawShearDiagram(shearValues, momentValues) {
         var activeTooltip = activeChart.tooltip;
 
         for (var index = 0; index < chartList.length; index++) {
-            var ctx = chartList[index];
+            var ctx = chartList[index].getContext('2d');
             var currentChart = Chart.getChart(ctx);
 
             var tooltip = currentChart.tooltip;
@@ -255,10 +272,10 @@ function drawShearDiagram(shearValues, momentValues) {
         labels: '',
         datasets: [
             {
-                fill: false,
+                fill: true,
                 pointRadius: 0,
                 pointHitRadius: 0,
-                borderColor: "rgba(255,0,0,1)",
+                borderColor: "rgba(255,199,0,1)",
                 data: shearValues[0],
                 order: 2,
             },
@@ -266,7 +283,7 @@ function drawShearDiagram(shearValues, momentValues) {
                 fill: false,
                 pointRadius: 6,
                 pointHitRadius: 12,
-                borderColor: "rgba(255,0,0,1)",
+                borderColor: "rgba(255,199,0,1)",
                 borderWidth: 3,
                 backgroundColor: "rgba(255,255,255,1)",
                 data: shearValues[1],
@@ -280,10 +297,10 @@ function drawShearDiagram(shearValues, momentValues) {
         labels: '',
         datasets: [
             {
-                fill: false,
+                fill: true,
                 pointRadius: 0,
                 pointHitRadius: 0,
-                borderColor: "rgba(0,0,255,1)",
+                borderColor: "rgba(6,120,255,1)",
                 data: momentValues[0],
                 order: 2,
             },
@@ -291,7 +308,7 @@ function drawShearDiagram(shearValues, momentValues) {
                 fill: false,
                 pointRadius: 6,
                 pointHitRadius: 10,
-                borderColor: "rgba(0,0,255,1)",
+                borderColor: "rgba(6,120,255,1)",
                 borderWidth: 3,
                 backgroundColor: "rgba(255,255,255,1)",
                 data: momentValues[1],

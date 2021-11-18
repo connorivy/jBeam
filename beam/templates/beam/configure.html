@@ -1,16 +1,14 @@
 {% extends "beam/base.html" %}
 {% load static %}
+
+{% block content %}
+
+<div id="info">Description</div>
+
+{% endblock  %}
 {% block threejs %}
 
 <script type="module">
-    // import * as THREE from "{% static 'node_modules/three/build/three.module.js'%}";
-    // import { MapControls } from "{% static 'node_modules/three/examples/jsm/controls/OrbitControls.js' %}";
-    // import { GUI } from "{% static 'node_modules/three/examples/jsm/libs/dat.gui.module.js'%}";
-    // import { Line2 } from "{% static 'node_modules/three/examples/jsm/lines/Line2.js'%}";
-    // import { LineMaterial } from "{% static 'node_modules/three/examples/jsm/lines/LineMaterial.js'%}";
-    // import { BufferGeometryUtils } from "{% static 'node_modules/three/examples/jsm/utils/BufferGeometryUtils.js'%}";
-    // import { GLTFLoader } from "{% static 'node_modules/three/examples/jsm/loaders/GLTFLoader.js'%}";
-
     import * as THREE from 'https://cdn.skypack.dev/three@0.130.1';
     import { GUI } from 'https://cdn.skypack.dev/three@0.130.1/examples/jsm/libs/dat.gui.module.js';
     import { MapControls } from 'https://cdn.skypack.dev/three@0.130.1/examples/jsm/controls/OrbitControls.js';
@@ -32,6 +30,7 @@
     let cylheight_max = 25;
     let cylheight_min = 10;
     let cylThickness = .5;
+    let gui;
 
     let colorList = [
         0xFFFFB300, //Vivid Yellow
@@ -141,7 +140,6 @@
             load.og_color = load.arrowMat.color.getHex();
             load.highlight_color = new THREE.Color(load.og_color)
             load.highlight_color.lerp(this.clickColor, .5)
-            console.log(load)
 
         }
 
@@ -373,16 +371,21 @@
         // beam.drawLoad(beam.PLs.at(-2))
         // beam.drawLoad(beam.DLs.at(-1))
 
-        // // draw shear and bending diagram
+        
         // // materials
         lineMat = new LineMaterial( {
-            color: 0xffffff,
+            color: 0xdddddd,
             linewidth: 3, // in pixels
             vertexColors: false,
             //resolution:  // to be set by renderer, eventually
             dashed: false,
             alphaToCoverage: true,
         } );
+
+        drawLine([[-100,0,-20],[-100, 0, -30]]);
+        drawLine([[100,0,-20],[100, 0, -30]]);
+        drawLine([[-100,0,-25],[-10, 0, -25]]);
+        drawLine([[100,0,-25],[10, 0, -25]]);
 
 
         // world
@@ -429,11 +432,27 @@
         document.addEventListener( 'mousemove', onMouseMove );
         canvas.addEventListener( 'click', onClick );
         document.addEventListener('keyup', onKeyUp);
-        get_diagrams();
+        draw_diagrams();
+        initGui();
 
         // const gui = new GUI();
         // gui.add( controls, 'screenSpacePanning' );
 
+    }
+
+    function initGui() {
+
+        // gui = new GUI();
+
+        // const param = {
+        //     'Beam Length': 30,
+        // };
+
+        // gui.add( param, 'width', 1, 80 ).onChange( function ( val ) {
+
+        //     matLine.linewidth = val;
+
+        // } );
     }
 
     function set_max_point_load(beam) {
@@ -477,7 +496,7 @@
         beam.maxDL = max;
     }
 
-    function draw_line(user_points) {
+    function drawLine(user_points) {
         // geometries
         const points = [];
         for (var i=0; i<user_points.length; i++) {
@@ -634,14 +653,15 @@
 
     }
 
-    function get_diagrams() {
+    function draw_diagrams() {
         $.ajax({
                 type: 'GET',
                 url: "{% url 'get_diagrams' %}",
 
                 success: function (response) {
                     drawShearDiagram([JSON.parse(response["shear_value_pairs"]), JSON.parse(response['max_shear_value_pairs'])],
-                                    [JSON.parse(response["moment_value_pairs"]), JSON.parse(response['max_moment_value_pairs'])])
+                                    [JSON.parse(response["moment_value_pairs"]), JSON.parse(response['max_moment_value_pairs'])],
+                                    [JSON.parse(response["extreme_shear_values"]), JSON.parse(response['extreme_moment_values'])])
                     //drawShearDiagram([JSON.parse(response["shear_value_pairs"]), JSON.parse(response['max_shear_value_pairs'])])
                 },
                 error: function (response) {
