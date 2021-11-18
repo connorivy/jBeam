@@ -200,11 +200,11 @@ a.article:hover {
     CONTENT STYLE
 ----------------------------------------------------- */
 
-#info {
+.dg {
 	position: absolute;
-	top: 10px;
+	top: var(--navbar-height);
+    left: var(--sidebar-width);
 	width: 100%;
-	text-align: center;
 	z-index: 100;
 	display:block;
 }

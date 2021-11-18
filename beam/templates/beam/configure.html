@@ -3,7 +3,7 @@
 
 {% block content %}
 
-<div id="info">Description</div>
+<!-- <div id="info">Description</div> -->
 
 {% endblock  %}
 {% block threejs %}
@@ -442,17 +442,17 @@
 
     function initGui() {
 
-        // gui = new GUI();
+        gui = new GUI();
 
-        // const param = {
-        //     'Beam Length': 30,
-        // };
+        const param = {
+            'Beam Length': 30,
+        };
 
-        // gui.add( param, 'width', 1, 80 ).onChange( function ( val ) {
+        gui.add( param, 'Beam Length', 1, 80 ).onChange( function ( val ) {
 
-        //     matLine.linewidth = val;
+            beam.L = val;
 
-        // } );
+        } );
     }
 
     function set_max_point_load(beam) {
