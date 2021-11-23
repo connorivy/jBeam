@@ -1,9 +1,9 @@
-{% extends "beam/configure.html" %}
+{% extends "beam/rightsidebar.html" %}
 {% load static %}
 {% load crispy_forms_tags %}
-{% block sidebar %}
+{% block leftsidebar %}
 
-    <nav id="sidebar" class="my-col" style="display: none;">
+    <nav id="sidebar" class="my-col" style="display: ;">
         <div class="sidebar-header">
             <h3>Point Load</h3>
         </div>
@@ -49,26 +49,20 @@
         </ul>
     </nav>
 
-    <nav id="sidebar" style="display: ;">
+    <!-- <nav id="sidebar" style="display: none;">
         <canvas id="shearChart"></canvas>
         <canvas id="momentChart"></canvas>
         <canvas id="deflectionChart"></canvas>
         <button>See Calculations</button>
         
-    </nav>
+    </nav> -->
 
-{% endblock sidebar %}
+{% endblock leftsidebar %}
 
 {% block scripts %} 
 
 function drawShearDiagram(dataInput) {
     console.log(dataInput)
-    /*
-    These are the parameters passed into this function
-    drawShearDiagram([JSON.parse(response["shear_value_pairs"]), JSON.parse(response['max_shear_value_pairs'])],
-                                    [JSON.parse(response["moment_value_pairs"]), JSON.parse(response['max_moment_value_pairs'])],
-                                    [JSON.parse(response["extreme_shear_values"]), JSON.parse(response['extreme_moment_values'])])
-    */
 
     var shearCtx = document.getElementById('shearChart').getContext('2d');
     var momentCtx = document.getElementById('momentChart').getContext('2d');
@@ -203,7 +197,7 @@ function drawShearDiagram(dataInput) {
                 tooltipEl.style.opacity = 0;
                 currentChart.options.tooltipLine.x = null;
                 currentChart.options.tooltipLine.y = null;
-                if (index == 0) {
+                if (index != chartList.length-1) {
                     continue
                 } else {
                     return;
@@ -379,6 +373,10 @@ function drawShearDiagram(dataInput) {
                 afterFit: function(scale) {
                     scale.width = 50  
                 },
+                title: {
+                    display: true,
+                    text: 'Shear [k]'
+                },
                 ticks: {
                     /*
                     // Include a foot sign in the ticks
@@ -460,8 +458,12 @@ function drawShearDiagram(dataInput) {
               y: {
                   type: 'linear',
                   afterFit: function(scale) {
-                    scale.width = 50  
-                    },
+                  scale.width = 50  
+                  },
+                  title: {
+                    display: true,
+                    text: 'Moment [k-ft]'
+                  },
                   ticks: {
                       /*
                       // Include a foot sign in the ticks

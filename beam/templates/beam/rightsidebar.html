@@ -1,0 +1,21 @@
+{% extends "beam/configure.html" %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block rightsidebar %}
+
+<nav id="right-sidebar" style="display: ;">
+    <div class="sidebar-header">
+        <h3>Results</h3>
+    </div>
+    <canvas id="shearChart"></canvas>
+    <canvas id="momentChart"></canvas>
+    <canvas id="deflectionChart"></canvas>
+    <!-- <button>See Calculations</button>   -->
+</nav>
+
+{% endblock rightsidebar %}
+
+{% block scripts %} {% endblock scripts %}
+
+{% block externalScripts %} {% endblock externalScripts %}

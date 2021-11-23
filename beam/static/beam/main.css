@@ -6,7 +6,8 @@
 
 :root {
     --navbar-height: 110px;
-    --sidebar-width: 350px;
+    --left-sidebar-width: 350px;
+    --right-sidebar-width: 350px;
 }
 
 body {
@@ -58,6 +59,10 @@ li.active a {
     color: #000000 !important;
 }
 
+#bot-navbar {
+    width: calc(100% - var(--right-sidebar-width))
+}
+
 /* .navbar-content {
     top: 60px;
 } */
@@ -72,7 +77,7 @@ li.active a {
 }
 
 #sidebar {
-    width: var(--sidebar-width);
+    width: var(--left-sidebar-width);
     position: fixed;
     top: var(--navbar-height);
     bottom: 0px;
@@ -84,8 +89,21 @@ li.active a {
     transition: all 0.3s;
 }
 
+#right-sidebar {
+    width: var(--right-sidebar-width);
+    position: fixed;
+    top: 0px;
+    bottom: 0px;
+    right: 0;
+    height: 100vh;
+    z-index: 999;
+    background: #fafafa;
+    color: #fff;
+    transition: all 0.3s;
+}
+
 #sidebar.active {
-    margin-left: calc(-1 * var(--sidebar-width));
+    margin-left: calc(-1 * var(--left-sidebar-width));
 }
 
 #sidebar .sidebar-header {
@@ -105,7 +123,7 @@ li.active a {
     color: #ffffff;
 }
 
-#sidebar .sidebar-header h3 {
+.sidebar-header h3 {
     color: #54565B;
     padding: 10px;
 }
@@ -203,21 +221,21 @@ a.article:hover {
 .dg {
 	position: absolute;
 	top: var(--navbar-height);
-    left: var(--sidebar-width);
+    left: var(--left-sidebar-width);
 	width: 100%;
 	z-index: 100;
 	display:block;
 }
 
 #content {
-    width: calc(100% - var(--sidebar-width));
+    width: calc(100% - var(--left-sidebar-width) - var(--right-sidebar-width));
     padding: 0px;
     padding-top: 0px;
     transition: all 0.3s;
     position: absolute;
     top: var(--navbar-height);
     height: calc(100% - var(--navbar-height));
-    right: 0px;
+    left: var(--left-sidebar-width);
     display: inline;
 }
 
@@ -242,7 +260,7 @@ canvas {
 
 @media (max-width: 768px) {
     #sidebar {
-        margin-left: calc(-1 * var(--sidebar-width));
+        margin-left: calc(-1 * var(--left-sidebar-width));
     }
     #sidebar.active {
         margin-left: 0;
@@ -251,7 +269,7 @@ canvas {
         width: 100%;
     }
     #content.active {
-        width: calc(100% - var(--sidebar-width));
+        width: calc(100% - var(--left-sidebar-width));
     }
     #sidebarCollapse span {
         display: none;

@@ -706,4 +706,25 @@
 
 {% endblock threejs %}
 
-{% block externalScripts %} {% endblock externalScripts %}
+{% block externalScripts %} 
+
+function draw_diagrams() {
+    $.ajax({
+            type: 'GET',
+            url: "{% url 'get_diagrams' %}",
+
+            success: function (response) {
+                drawShearDiagram(response)
+                // drawShearDiagram([JSON.parse(response["shear_value_pairs"]), JSON.parse(response['max_shear_value_pairs'])],
+                //                 [JSON.parse(response["moment_value_pairs"]), JSON.parse(response['max_moment_value_pairs'])],
+                //                 [JSON.parse(response["delfection_value_pairs"]), JSON.parse(response['deflection_value_pairs'])])
+                //drawShearDiagram([JSON.parse(response["shear_value_pairs"]), JSON.parse(response['max_shear_value_pairs'])])
+            },
+            error: function (response) {
+                console.log('error')
+                console.log(response)
+            }
+        })
+}
+
+{% endblock externalScripts %}
