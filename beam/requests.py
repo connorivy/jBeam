@@ -3,6 +3,7 @@ from django.http.response import JsonResponse
 from .models import *
 from .forms import *
 from symbeam import beam
+import json
 
 @csrf_exempt
 def update_point_load(request):
@@ -41,13 +42,8 @@ def get_diagrams(request):
 
         calc_beam.solve()
 
-        shear_value_pairs, max_shear_value_pairs, moment_value_pairs, max_moment_value_pairs, extreme_shear_values, extreme_moment_values = calc_beam.get_chart_values(subs={'E': 29000})
+        output = calc_beam.get_chart_values(subs={'E': 29000})
 
-        return JsonResponse({"shear_value_pairs": shear_value_pairs, 
-                            "max_shear_value_pairs": max_shear_value_pairs,
-                             'moment_value_pairs': moment_value_pairs,
-                             'max_moment_value_pairs': max_moment_value_pairs,
-                             'extreme_shear_values': extreme_shear_values, 
-                             'extreme_moment_values': extreme_moment_values}, status = 200)
+        return JsonResponse(output, status = 200)
 
     return JsonResponse({}, status = 400)

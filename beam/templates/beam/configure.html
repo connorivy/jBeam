@@ -659,9 +659,10 @@
                 url: "{% url 'get_diagrams' %}",
 
                 success: function (response) {
-                    drawShearDiagram([JSON.parse(response["shear_value_pairs"]), JSON.parse(response['max_shear_value_pairs'])],
-                                    [JSON.parse(response["moment_value_pairs"]), JSON.parse(response['max_moment_value_pairs'])],
-                                    [JSON.parse(response["extreme_shear_values"]), JSON.parse(response['extreme_moment_values'])])
+                    drawShearDiagram(response)
+                    // drawShearDiagram([JSON.parse(response["shear_value_pairs"]), JSON.parse(response['max_shear_value_pairs'])],
+                    //                 [JSON.parse(response["moment_value_pairs"]), JSON.parse(response['max_moment_value_pairs'])],
+                    //                 [JSON.parse(response["delfection_value_pairs"]), JSON.parse(response['deflection_value_pairs'])])
                     //drawShearDiagram([JSON.parse(response["shear_value_pairs"]), JSON.parse(response['max_shear_value_pairs'])])
                 },
                 error: function (response) {
