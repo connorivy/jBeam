@@ -7,7 +7,7 @@
 :root {
     --navbar-height: 110px;
     --left-sidebar-width: 350px;
-    --right-sidebar-width: 350px;
+    --right-sidebar-width: 0px;
 }
 
 body {
@@ -52,7 +52,7 @@ a:focus {
 }
 
 li.active {
-    background-color: #fafafa;
+    background-color: #ffffff;
 }
 
 li.active a {
@@ -60,7 +60,11 @@ li.active a {
 }
 
 #bot-navbar {
-    width: calc(100% - var(--right-sidebar-width))
+    width: calc(100% - var(--right-sidebar-width));
+}
+
+#top-navbar {
+    background-color: #e1e6ef;
 }
 
 /* .navbar-content {
@@ -76,7 +80,7 @@ li.active a {
     width: 100%;
 }
 
-#sidebar {
+.sidebar {
     width: var(--left-sidebar-width);
     position: fixed;
     top: var(--navbar-height);
@@ -84,9 +88,10 @@ li.active a {
     left: 0;
     height: 100vh;
     z-index: 999;
-    background: #fafafa;
+    background: #ffffff;
     color: #fff;
     transition: all 0.3s;
+    border-top: 4px solid #29AEFE;
 }
 
 #right-sidebar {
@@ -102,11 +107,11 @@ li.active a {
     transition: all 0.3s;
 }
 
-#sidebar.active {
+.sidebar.active {
     margin-left: calc(-1 * var(--left-sidebar-width));
 }
 
-#sidebar th {
+.sidebar th {
     font-family: 'Poppins', sans-serif;
     font-size: 1.1em;
     font-weight: 300;
@@ -114,7 +119,7 @@ li.active a {
     color: #54565B;
 }
 
-#sidebar .tooltip th {
+.sidebar .tooltip th {
     color: #ffffff;
 }
 
@@ -124,33 +129,33 @@ li.active a {
     text-align: center;
 }
 
-#sidebar p {
+.sidebar p {
     color:#000000;
 }
 
-#sidebar ul.components {
+.sidebar ul.components {
     padding: 20px 0;
     border-bottom: 1px solid #54565B;
     color: #54565B;
 }
 
-#sidebar ul p {
+.sidebar ul p {
     color: #54565B;
     padding: 10px;
 }
 
-#sidebar ul li a {
+.sidebar ul li a {
     padding: 10px;
     font-size: 1.1em;
     display: block;
 }
 
-#sidebar ul li a:hover {
+.sidebar ul li a:hover {
     color: #973437;
     background: #fff;
 }
 
-#sidebar ul li.active>a,
+.sidebar ul li.active>a,
 a[aria-expanded="true"] {
     color: #54565B;
     background: #fafafa;
@@ -188,12 +193,12 @@ ul.CTAs a {
 
 a.download {
     background: #fff;
-    color: #97282C;
+    color: #29AEFE;
 }
 
 a.article,
 a.article:hover {
-    background: #97282C !important;
+    background: #29AEFE !important;
     color: #fff !important;
 }
 
@@ -235,8 +240,25 @@ a.article:hover {
     display: inline;
 }
 
+#content.threejs {
+    background: #e1e6ef;
+}
+
 #content.active {
     width: 100%;
+}
+
+#table-container {
+    border-radius: 5px;
+    height: calc(100% - 90px - 60%);;
+    margin: 30px;
+    margin-top: 0px;
+    top: 0px;
+    bottom: 0px;
+    overflow: hidden;
+    width: auto;
+    background-color: #ffffff;
+    /* box-shadow: 10px 10px 30px 3px #a8d0e0; */
 }
 
 /* ---------------------------------------------------
@@ -250,15 +272,24 @@ canvas {
     position: static;
 }
 
+#threejs-container {
+    border-radius: 5px;
+    height: 60%;
+    margin: 30px;
+    overflow: hidden;
+    width: auto;
+    /* box-shadow: 10px 10px 30px 3px #a8d0e0; */
+}
+
 /* ---------------------------------------------------
     MEDIAQUERIES
 ----------------------------------------------------- */
 
 @media (max-width: 768px) {
-    #sidebar {
+    .sidebar {
         margin-left: calc(-1 * var(--left-sidebar-width));
     }
-    #sidebar.active {
+    .sidebar.active {
         margin-left: 0;
     }
     #content {
@@ -267,7 +298,7 @@ canvas {
     #content.active {
         width: calc(100% - var(--left-sidebar-width));
     }
-    #sidebarCollapse span {
+    .sidebarCollapse span {
         display: none;
     }
 }

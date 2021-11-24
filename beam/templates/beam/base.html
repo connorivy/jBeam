@@ -22,7 +22,7 @@
     <body>
         {% block rightsidebar %} {% endblock %}
         <header class="site-header py-0">
-            <nav class="navbar navbar-expand-lg navbar-dark bg-dark py-0" id="top-navbar">
+            <nav class="navbar navbar-expand-lg navbar-light py-0" id="top-navbar">
                 <!-- <a class="navbar-brand" href="#">Navbar</a> -->
                 <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                   <span class="navbar-toggler-icon"></span>
@@ -69,7 +69,7 @@
                   </form> -->
                 </div>
             </nav>
-            <nav class="navbar navbar-expand-lg navbar-light bg-light py-4" id="bot-navbar">
+            <nav class="navbar navbar-expand-lg py-4" id="bot-navbar">
                 <a class="navbar-brand" href="#">jBeam</a>
                 <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                   <span class="navbar-toggler-icon"></span>
@@ -187,7 +187,12 @@
                         </div>
                     </div>
                 </nav> -->
-                <canvas></canvas>
+                <div id="threejs-container" class="module">
+                    <canvas></canvas>
+                </div>
+                <div id="table-container" class="module">
+                    
+                </div>
             </div>
         </div>
     </div>
