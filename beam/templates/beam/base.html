@@ -10,7 +10,7 @@
 
         <title>jBeam</title>
 
-        
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@6.5.95/css/materialdesignicons.min.css">
         <!-- Bootstrap CSS CDN -->
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css" integrity="sha384-9gVQ4dYFwwWSjIDZnLEWnxCjeSWFphJiwGPXr1jddIhOegiu1FwO5qRGvFXOdJZ4" crossorigin="anonymous">
         <!-- Our Custom CSS -->
@@ -191,7 +191,7 @@
                     <canvas></canvas>
                 </div>
                 <div id="table-container" class="module">
-                    
+                    {% block loadtable %} {% endblock loadtable %}
                 </div>
             </div>
         </div>

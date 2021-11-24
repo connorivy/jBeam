@@ -28,10 +28,11 @@
     let beam;
     let beamHeight = 8;
     let coneHeight = -10;
-    let cylheight_max = 25;
-    let cylheight_min = 10;
+    let cylheight_max = 18;
+    let cylheight_min = 5;
     let cylThickness = .5;
     let gui;
+    let initialCamPos = new THREE.Vector3(-313,-945,169);
 
     let colorList = [
         0xFFFFB300, //Vivid Yellow
@@ -334,7 +335,8 @@
         // is the the aspect for the canvas default size (300w/150h = 2)
         camera = new THREE.PerspectiveCamera(5.5, 2, 1, 5000);
         camera.up = new THREE.Vector3( 0, 0, 1 );
-        camera.position.set( -500, -1000, 235 );
+        console.log(initialCamPos.x)
+        camera.position.set( initialCamPos.x, initialCamPos.y, initialCamPos.z );
         // camera.position.set(0,-200,0);
 
         var controls = new MapControls(camera, renderer.domElement);
@@ -525,8 +527,8 @@
             var desired_screen_width = 220
             var dist = desired_screen_width / ( 2 * Math.tan(vFOV/2) * camera.aspect )
 
-            var multiplier = dist / 1145 // 1145 is the distance of (-500,-1000,250) from the origin. I'm essentially linearly interpolating the camera on this line
-            camera.position.set( -500*multiplier, -1000*multiplier, 250*multiplier );
+            var multiplier = dist / Math.sqrt(initialCamPos.x*initialCamPos.x+initialCamPos.y*initialCamPos.y+initialCamPos.z*initialCamPos.z) // I'm essentially linearly interpolating the camera on this line
+            camera.position.set( initialCamPos.x*multiplier, initialCamPos.y*multiplier, initialCamPos.z*multiplier );
 
             // set matLine resolution
             lineMat.resolution.set( width, height );
@@ -548,6 +550,7 @@
     }
 
     function onClick( event ) {
+        console.log(camera.position)
         if (INTERSECTED) {
             // console.log(INTERSECTED)
             if (INTERSECTED.userData.type == 'point') var loadList = beam.PLs;
