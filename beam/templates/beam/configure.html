@@ -5,7 +5,8 @@
 
 <!-- <div id="info">Description</div> -->
 
-{% endblock  %}
+{% endblock content %}
+
 {% block threejs %}
 
 <script type="module">
@@ -161,8 +162,11 @@
             const width = canvas.clientWidth;
             var widthLoad = 0;
 
-            if (load.endLocation) {
-                widthLoad = Math.abs(load.endLocation - load.startLocation);
+            load.startLocationOnCanvas = load.startLocation / this.L * 200 - 100;
+            load.endLocationOnCanvas = load.endLocation / this.L * 200 - 100;
+
+            if (load.endLocationOnCanvas) {
+                widthLoad = Math.abs(load.endLocationOnCanvas - load.startLocationOnCanvas);
                 numArrows = Math.floor(width / (widthLoad * 1.8)) - 1;
 
                 if (load.isMaxDL) {
@@ -173,7 +177,7 @@
                 // add top bar piece to dist load
                 cylGeo.push(new THREE.CylinderGeometry( cylThickness, cylThickness, widthLoad, 40 ));
                 cylGeo.at(-1).rotateZ(Math.PI / 2);
-                cylGeo.at(-1).translate((load.startLocation+load.endLocation)/2, 0, beamHeight + -1 * coneHeight + load.magnitude*multiplier + cylheight_min);
+                cylGeo.at(-1).translate((load.startLocationOnCanvas+load.endLocationOnCanvas)/2, 0, beamHeight + -1 * coneHeight + load.magnitude*multiplier + cylheight_min);
 
             } else {
                 // needs to be set to zero to make the loop work even though there will be one arrow
@@ -194,10 +198,10 @@
 
                 // orientation of geometries
                 coneGeo.at(-1).rotateX(Math.PI / 2);
-                coneGeo.at(-1).translate(load.startLocation + i * widthLoad / (numArrows+1), 0, -1 * coneHeight / 2 + beamHeight);
+                coneGeo.at(-1).translate(load.startLocationOnCanvas + i * widthLoad / (numArrows+1), 0, -1 * coneHeight / 2 + beamHeight);
 
                 cylGeo.at(-1).rotateX(Math.PI / 2);
-                cylGeo.at(-1).translate(load.startLocation + i * widthLoad / (numArrows+1), 0, beamHeight + -1 * coneHeight + (load.magnitude * multiplier + cylheight_min)/ 2);
+                cylGeo.at(-1).translate(load.startLocationOnCanvas + i * widthLoad / (numArrows+1), 0, beamHeight + -1 * coneHeight + (load.magnitude * multiplier + cylheight_min)/ 2);
             }
             
             // combine geometries into single geometry and create mesh object
@@ -216,17 +220,6 @@
             if (click) {
                 CLICKED = load.mesh;
             }
-        }
-
-        get beamReactions() {
-            var rxn_left = 0;
-            var rxn_right = 0;
-            for (var i=0; i<this.PLs.length; i++) {
-                var fromSingleLoad = this.PLs[i].reactionsFromSinglePointLoad;
-                rxn_left += fromSingleLoad.left;
-                rxn_right += fromSingleLoad.right;
-            }
-            return rxn_left, rxn_right
         }
     }
 
@@ -355,7 +348,7 @@
         // scene.add(new THREE.GridHelper(1000, 100));
 
         // Beam(L, E, I, A, Lcant, Rcant, left_support_type, right_support_type)
-        beam = new Beam(15, 29000, 2900, 16, 0, 0, 'pin', 'pin');
+        beam = new Beam(30, 29000, 2900, 16, 0, 0, 'pin', 'pin');
 
         // draw arrows 
         {% for pl in point_loads %}
@@ -432,7 +425,7 @@
         document.addEventListener( 'mousemove', onMouseMove );
         canvas.addEventListener( 'click', onClick );
         document.addEventListener('keyup', onKeyUp);
-        draw_diagrams();
+        //draw_diagrams();
         initGui();
 
         // const gui = new GUI();
@@ -593,8 +586,6 @@
             console.log('tab');
         } else if (event.code === 'Slash') {
             console.log('/')
-            console.log(JSON.stringify(CLICKED))
-            beamReactions()
         }
     }
 
@@ -653,25 +644,6 @@
 
     }
 
-    function draw_diagrams() {
-        $.ajax({
-                type: 'GET',
-                url: "{% url 'get_diagrams' %}",
-
-                success: function (response) {
-                    drawShearDiagram(response)
-                    // drawShearDiagram([JSON.parse(response["shear_value_pairs"]), JSON.parse(response['max_shear_value_pairs'])],
-                    //                 [JSON.parse(response["moment_value_pairs"]), JSON.parse(response['max_moment_value_pairs'])],
-                    //                 [JSON.parse(response["delfection_value_pairs"]), JSON.parse(response['deflection_value_pairs'])])
-                    //drawShearDiagram([JSON.parse(response["shear_value_pairs"]), JSON.parse(response['max_shear_value_pairs'])])
-                },
-                error: function (response) {
-                    console.log('error')
-                    console.log(response)
-                }
-            })
-    }
-
     $("#sidebar").mouseleave(function (e) {
         e.preventDefault();
         // get the point load primary key
@@ -689,9 +661,10 @@
                 "magnitude": load.magnitude,
                 'location': load.startLocation,
                 'index': load.index,
+                'L': beam.L,
             },
             success: function (response) {
-                console.log(response["magnitude"]);
+                console.log(response["L"]);
                 // part = $(".vendorpart").val(response["part"]);
                 // cost = $(".vendorcost").val(response["cost"]);
             },
@@ -705,26 +678,3 @@
 </script>
 
 {% endblock threejs %}
-
-{% block externalScripts %} 
-
-function draw_diagrams() {
-    $.ajax({
-            type: 'GET',
-            url: "{% url 'get_diagrams' %}",
-
-            success: function (response) {
-                drawShearDiagram(response)
-                // drawShearDiagram([JSON.parse(response["shear_value_pairs"]), JSON.parse(response['max_shear_value_pairs'])],
-                //                 [JSON.parse(response["moment_value_pairs"]), JSON.parse(response['max_moment_value_pairs'])],
-                //                 [JSON.parse(response["delfection_value_pairs"]), JSON.parse(response['deflection_value_pairs'])])
-                //drawShearDiagram([JSON.parse(response["shear_value_pairs"]), JSON.parse(response['max_shear_value_pairs'])])
-            },
-            error: function (response) {
-                console.log('error')
-                console.log(response)
-            }
-        })
-}
-
-{% endblock externalScripts %}

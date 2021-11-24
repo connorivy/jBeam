@@ -2,7 +2,6 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from .models import *
 from .forms import *
-from .diagrams import Beam, PointLoad
 
 
 def configure(request):
