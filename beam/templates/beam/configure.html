@@ -648,6 +648,9 @@
         e.preventDefault();
         // get the point load primary key
         // var key = $('#form-index').val();
+        if (!CLICKED) {
+            return
+        }
         var load = beam.PLs.at(CLICKED.userData.index)
         load.magnitude = parseFloat($('#form-magnitude').val());
         load.startLocation = parseFloat($('#form-location').val());

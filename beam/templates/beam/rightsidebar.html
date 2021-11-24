@@ -240,6 +240,8 @@
                 tooltipEl.style.padding = tooltip.options.padding + 'px ' + activeTooltip.options.padding + 'px';
             }
         }
+
+        console.log(dataInput['max_shear_value_pairs'].at(-1)['x'])
     
         // <block:setup:1>
         const shearData = {
@@ -263,7 +265,18 @@
                     data: dataInput["max_shear_value_pairs"],
                     order: 1,
                     showLine: false,
-                }
+                },
+                {
+                    fill: true,
+                    pointRadius: 0,
+                    pointHitRadius: 0,
+                    borderColor: "rgba(120,120,120,.7)",
+                    data: [
+                        {'x':0, 'y':0 },
+                        {'x': dataInput['max_shear_value_pairs'].at(-1)['x'], 'y':0 }
+                    ],
+                    order: 3,
+                },
             ]
         };
 
@@ -288,7 +301,18 @@
                     data: dataInput["max_moment_value_pairs"],
                     order: 1,
                     showLine: false,
-                }
+                },
+                {
+                    fill: true,
+                    pointRadius: 0,
+                    pointHitRadius: 0,
+                    borderColor: "rgba(120,120,120,.7)",
+                    data: [
+                        {'x':0, 'y':0 },
+                        {'x': dataInput['max_shear_value_pairs'].at(-1)['x'], 'y':0 }
+                    ],
+                    order: 3,
+                },
             ]
         };
 
@@ -299,7 +323,7 @@
                     fill: true,
                     pointRadius: 0,
                     pointHitRadius: 0,
-                    borderColor: "rgba(6,120,255,1)",
+                    borderColor: "rgba(33, 166, 81,1)",
                     data: dataInput["deflection_value_pairs"],
                     order: 2,
                 },
@@ -307,13 +331,24 @@
                     fill: false,
                     pointRadius: 6,
                     pointHitRadius: 10,
-                    borderColor: "rgba(6,120,255,1)",
+                    borderColor: "rgba(33, 166, 81,1)",
                     borderWidth: 3,
                     backgroundColor: "rgba(255,255,255,1)",
                     data: dataInput["max_deflection_value_pairs"],
                     order: 1,
                     showLine: false,
-                }
+                },
+                {
+                    fill: true,
+                    pointRadius: 0,
+                    pointHitRadius: 0,
+                    borderColor: "rgba(65,65,65,.7)",
+                    data: [
+                        {'x':0, 'y':0 },
+                        {'x': dataInput['max_shear_value_pairs'].at(-1)['x'], 'y':0 }
+                    ],
+                    order: 3,
+                },
             ]
         };
         // </block:setup>

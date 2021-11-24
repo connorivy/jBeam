@@ -39,10 +39,3 @@ class pointLoad(models.Model):
 
     def __str__(self):
         return f'{self.load_case} {self.magnitude} {self.location}'
-
-
-    def getReactionsFromSinglePointLoad(self):
-        self.a = self.location - self.beam.Lcant
-        self.b = self.beam.L_btwn_supports - self.a
-
-        return (self.magnitude * self.b) / (self.beam.L), self.magnitude * self.a / (self.beam.L)

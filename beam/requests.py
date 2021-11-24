@@ -42,7 +42,7 @@ def get_diagrams(request):
 
         calc_beam.solve()
 
-        output = calc_beam.get_chart_values(subs={'E': 29000})
+        output = calc_beam.get_chart_values(subs={'E': (29000 * 144)})
 
         return JsonResponse(output, status = 200)
 
