@@ -17,6 +17,6 @@ def configure(request):
         'form': form,
         'point_loads': pointLoad.objects.all(),
     }
-    return render(request, 'beam/sidebar.html', context)
+    return render(request, 'beam/pagetables.html', context)
 
 

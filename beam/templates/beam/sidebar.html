@@ -1,4 +1,4 @@
-{% extends "beam/loadtable.html" %}
+{% extends "beam/configure.html" %}
 {% load static %}
 {% load crispy_forms_tags %}
 {% block leftsidebar %}
@@ -36,7 +36,7 @@
         </table>
     </nav>
 
-    <nav id="icon-sidebar" class = "sidebar" style="display: ;">
+    <!-- <nav id="icon-sidebar" class = "sidebar" style="display: ;">
         <ul id="sidebarnav" class="p-t-30">
             
         </ul>
@@ -48,9 +48,31 @@
             <li class="sidebar-item"> <a class="sidebar-link waves-effect waves-dark sidebar-link" href="#" aria-expanded="false"><i class="mdi mdi-36px mdi-blur-linear"></i><span class="hide-menu"></span></a></li>
             <li class="sidebar-item"> <a class="sidebar-link waves-effect waves-dark sidebar-link" href="#" aria-expanded="false"><i class="mdi mdi-36px mdi-calculator" onclick="draw_diagrams()"></i><span class="hide-menu"></span></a></li>
         </ul>
-    </nav>
+    </nav> -->
 
-    <nav id="sidebar" class = "sidebar" style="display: ;">
+    <ul class="navbar-nav navbar-nav-lg nav-tabs navbar-vertical-without-icons pt-2" style="display: ;">
+        <li class="navbar-vertical-aside-has-menu show">
+            <a class="js-navbar-vertical-aside-menu-link nav-link nav-link-toggle " href="javascript:;">
+                <span class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate" title="Dashboards">Diagrams</span>
+            </a>
+        
+
+            <ul class="js-navbar-vertical-aside-submenu nav nav-sub">
+                <li class="nav-item">
+                    <canvas id="shearChart"></canvas>
+                </li>
+                <li class="nav-item">
+                    <canvas id="momentChart"></canvas>
+                </li>
+                <li class="nav-item">
+                    <canvas id="deflectionChart"></canvas>
+                </li>
+            </ul>
+        </li>
+        <!-- <button>See Calculations</button>   -->
+    </ul>
+
+    <nav id="sidebar" class = "navbar-nav navbar-nav-lg nav-tabs navbar-vertical-without-icons pt-2" style="display: none;">
         <div class="sidebar-header">
             <h3>Point Load</h3>
         </div>
@@ -62,7 +84,7 @@
                             Magnitude
                         </th>
                         <td>
-                            {{ form.magnitude|as_crispy_field }}
+                            <!-- {{ form.magnitude|as_crispy_field }} -->
                         </td>
                     </tr>
                     <tr>
@@ -70,7 +92,7 @@
                             Location
                         </th>
                         <td>
-                            {{ form.location|as_crispy_field }}
+                            <!-- {{ form.location|as_crispy_field }} -->
                         </td>
                     </tr>
                     <tr>
@@ -78,7 +100,7 @@
                             Load Index
                         </th>
                         <td>
-                            {{ form.index|as_crispy_field }}
+                            <!-- {{ form.index|as_crispy_field }} -->
                         </td>
                     </tr>
                 </tbody>
@@ -106,6 +128,617 @@
 
 {% endblock leftsidebar %}
 
-{% block scripts %} 
+{% block externalScripts %} 
 
-{% endblock scripts %}
+<script type="text/javascript">
+    function draw_diagrams() {
+        $.ajax({
+            type: 'GET',
+            url: "{% url 'get_diagrams' %}",
+
+            success: function (response) {
+                drawShearDiagram(response)
+            },
+            error: function (response) {
+                console.log('error')
+                console.log(response)
+            }
+        })
+    }
+
+    function drawShearDiagram(dataInput) {
+        console.log(dataInput)
+
+        var shearCtx = document.getElementById('shearChart').getContext('2d');
+        var momentCtx = document.getElementById('momentChart').getContext('2d');
+        var deflectionCtx = document.getElementById('deflectionChart').getContext('2d');
+
+        var chartList = [document.getElementById('shearChart'),document.getElementById('momentChart'), document.getElementById('deflectionChart')];
+
+
+        const tooltipLine = {
+            id: 'tooltipLine',
+            afterLayout: function (chart) {
+                /*** Set Gradient For Graph ***/
+
+                var color = chart.data.datasets[0].borderColor
+
+                var zeroColor = Math.abs(chart.scales.y.start) / (Math.abs(chart.scales.y.end - chart.scales.y.start))
+                var gradient = chart.ctx.createLinearGradient(0, chart.chartArea.bottom, 0, chart.chartArea.top);
+                
+                gradient.addColorStop(0, color.replace(/[\d\.]+\)$/g, '.5)'));
+                gradient.addColorStop(zeroColor, color.replace(/[\d\.]+\)$/g, '0)'));   
+                gradient.addColorStop(1, color.replace(/[\d\.]+\)$/g, '.5)'));
+
+                chart.data.datasets[0].backgroundColor = gradient;
+            },
+            afterDraw: function (chart) {
+                // this if statement makes it so when a chart is drawn not because of an event trigger, but because of a manual redraw to get rid of vertical lines,
+                // it won't get stuck in an infinite loop of calling other functinos and redrawing them
+                if (chart.options.tooltipLine.redraw) {
+                    chart.options.tooltipLine.redraw = false;
+                    return;
+                }
+
+                for (let i = 0; i < chartList.length; i++) {
+
+                    var ctx = chartList[i].getContext('2d');
+                    var currentChart = Chart.getChart(ctx);
+
+                    if (!currentChart.options.tooltipLine.active) {
+                        currentChart.options.tooltipLine.redraw = true;
+                        currentChart.draw()
+                    }
+
+                    ctx.beginPath();
+                    ctx.setLineDash([5,7]);
+                    ctx.moveTo(chart.options.tooltipLine.x, chart.chartArea.top);
+                    ctx.lineTo(chart.options.tooltipLine.x, currentChart.options.tooltipLine.y);
+                    ctx.lineWidth = 2;
+                    ctx.strokeStyle = 'grey';
+                    ctx.stroke();
+                    ctx.restore();
+
+                    ctx.beginPath();
+                    ctx.setLineDash([0,0]);
+                    ctx.moveTo(chart.options.tooltipLine.x, currentChart.options.tooltipLine.y);
+                    ctx.lineTo(chart.options.tooltipLine.x, chart.chartArea.bottom);
+                    ctx.lineWidth = 2;
+                    ctx.strokeStyle = 'grey';
+                    ctx.stroke();
+                    ctx.restore();
+                }
+            }
+        } 
+
+        /* ---------------------------------------------------------------------------------------------------------------------------------------------------------
+        custom tooltip code
+        ------------------------------------------------------------------------------------------------------------------------------------------------------------ */
+
+        // <block:external:2>
+        const getOrCreateTooltip = (chart) => {
+            var chartID = chart.canvas.id;
+            let tooltipEl = chart.canvas.parentNode.querySelector('div#' + String(chartID) + 'Tooltip');
+    
+            if (!tooltipEl) {
+                tooltipEl = document.createElement('div');
+                tooltipEl.className = 'tooltip';
+                tooltipEl.id = String(chartID) + 'Tooltip';
+                tooltipEl.style.background = 'rgba(0, 0, 0, 0.7)';
+                tooltipEl.style.borderRadius = '3px';
+                tooltipEl.style.color = 'white';
+                tooltipEl.style.opacity = 1;
+                tooltipEl.style.pointerEvents = 'none';
+                tooltipEl.style.position = 'absolute';
+                tooltipEl.style.transform = 'translate(-50%, 0)';
+                tooltipEl.style.transition = 'all .1s ease';
+    
+                const table = document.createElement('table');
+                table.style.margin = '0px';
+            
+                tooltipEl.appendChild(table);
+                chart.canvas.parentNode.appendChild(tooltipEl);
+            }
+    
+        return tooltipEl;
+        };
+    
+        const externalTooltipHandler = (context) => {
+            const {chart, tooltip} = context
+            updateTooltip()
+        };
+
+        function updateTooltip() {
+
+            var activeChart = null;
+
+            // get tooltip from chart that is being hovered over
+            for (var i = 0; i < chartList.length; i++) {
+                var ctx = chartList[i].getContext('2d');
+                var currentChart = Chart.getChart(ctx);
+
+                if (currentChart.options.tooltipLine.active) {
+                    activeChart = currentChart;
+                }
+            }
+
+            if (!activeChart) {
+                console.log('no active chart')
+                return
+            }
+
+            var activeTooltip = activeChart.tooltip;
+
+            for (var index = 0; index < chartList.length; index++) {
+                var ctx = chartList[index].getContext('2d');
+                var currentChart = Chart.getChart(ctx);
+
+                var tooltip = currentChart.tooltip;
+                var tooltipEl = getOrCreateTooltip(currentChart);
+    
+                // Hide if no tooltip
+                if (activeTooltip.opacity === 0) {
+                    tooltipEl.style.opacity = 0;
+                    currentChart.options.tooltipLine.x = null;
+                    currentChart.options.tooltipLine.y = null;
+                    if (index != chartList.length-1) {
+                        continue
+                    } else {
+                        return;
+                    }
+                }
+        
+                // Set Text
+                var text = [];
+                var dataX = 0;
+                if (!activeChart.options.tooltipLine.intersectedX) {
+                    // set labelX to use as your x value
+
+                    currentChart.options.tooltipLine.x = currentChart.scales.x.getPixelForValue(activeTooltip.dataPoints[0].label);
+                    currentChart.options.tooltipLine.y = currentChart.scales.y.getPixelForValue(currentChart.data.datasets[0].data[activeTooltip.dataPoints[0].dataIndex].y);
+
+                    text = [+parseFloat(activeTooltip.dataPoints[0].label).toFixed(2), +currentChart.data.datasets[0].data[activeTooltip.dataPoints[0].dataIndex].y.toFixed(2)];
+                } else {
+
+                    currentChart.options.tooltipLine.x = activeChart.options.tooltipLine.intersectedX;
+                    currentChart.options.tooltipLine.y = currentChart.scales.y.getPixelForValue(currentChart.data.datasets[0].data[activeChart.options.tooltipLine.intersectedIndex].y);
+
+                    text = [+currentChart.data.datasets[0].data[activeChart.options.tooltipLine.intersectedIndex].x.toFixed(2), +currentChart.data.datasets[0].data[activeChart.options.tooltipLine.intersectedIndex].y.toFixed(2)];
+                }
+
+                if (activeTooltip.body) {
+                    const tableHead = document.createElement('thead');
+                    const tableBody = document.createElement('tbody');
+
+                    for (var i=0; i<text.length; i++) {
+                    const tr = document.createElement('tr');
+                    tr.style.backgroundColor = 'inherit';
+                    tr.style.borderWidth = 0;
+
+                    const td = document.createElement('td');
+                    td.style.borderWidth = 0;
+                
+                    // td.appendChild(span);
+
+                    td.appendChild(document.createTextNode(text[i]));
+                    tr.appendChild(td);
+                    tableBody.appendChild(tr);
+
+                    }
+
+                    const tableRoot = tooltipEl.querySelector('table');
+                
+                    // Remove old children
+                    while (tableRoot.firstChild) {
+                    tableRoot.firstChild.remove();
+                    }
+                
+                    // Add new children
+                    tableRoot.appendChild(tableHead);
+                    tableRoot.appendChild(tableBody);
+                }
+
+                const {offsetLeft: positionX, offsetTop: positionY} = currentChart.canvas;
+                
+                // Display, position, and set styles for font
+                tooltipEl.style.opacity = 1;
+                tooltipEl.style.left = positionX + currentChart.options.tooltipLine.x + 'px';
+                tooltipEl.style.top = positionY + currentChart.options.tooltipLine.y + 'px';
+                tooltipEl.style.font = tooltip.options.bodyFont.string;
+                tooltipEl.style.padding = tooltip.options.padding + 'px ' + activeTooltip.options.padding + 'px';
+            }
+        }
+
+        console.log(dataInput['max_shear_value_pairs'].at(-1)['x'])
+    
+        // <block:setup:1>
+        const shearData = {
+            labels: '',
+            datasets: [
+                {
+                    fill: true,
+                    pointRadius: 0,
+                    pointHitRadius: 0,
+                    borderColor: "rgba(255,199,0,1)",
+                    data: dataInput["shear_value_pairs"],
+                    order: 2,
+                },
+                {
+                    fill: false,
+                    pointRadius: 6,
+                    pointHitRadius: 12,
+                    borderColor: "rgba(255,199,0,1)",
+                    borderWidth: 3,
+                    backgroundColor: "rgba(255,255,255,1)",
+                    data: dataInput["max_shear_value_pairs"],
+                    order: 1,
+                    showLine: false,
+                },
+                {
+                    fill: true,
+                    pointRadius: 0,
+                    pointHitRadius: 0,
+                    borderColor: "rgba(120,120,120,.7)",
+                    data: [
+                        {'x':0, 'y':0 },
+                        {'x': dataInput['max_shear_value_pairs'].at(-1)['x'], 'y':0 }
+                    ],
+                    order: 3,
+                },
+            ]
+        };
+
+        const momentData = {
+            labels: '',
+            datasets: [
+                {
+                    fill: true,
+                    pointRadius: 0,
+                    pointHitRadius: 0,
+                    borderColor: "rgba(6,120,255,1)",
+                    data: dataInput["moment_value_pairs"],
+                    order: 2,
+                },
+                {
+                    fill: false,
+                    pointRadius: 6,
+                    pointHitRadius: 10,
+                    borderColor: "rgba(6,120,255,1)",
+                    borderWidth: 3,
+                    backgroundColor: "rgba(255,255,255,1)",
+                    data: dataInput["max_moment_value_pairs"],
+                    order: 1,
+                    showLine: false,
+                },
+                {
+                    fill: true,
+                    pointRadius: 0,
+                    pointHitRadius: 0,
+                    borderColor: "rgba(120,120,120,.7)",
+                    data: [
+                        {'x':0, 'y':0 },
+                        {'x': dataInput['max_shear_value_pairs'].at(-1)['x'], 'y':0 }
+                    ],
+                    order: 3,
+                },
+            ]
+        };
+
+        const deflectionData = {
+            labels: '',
+            datasets: [
+                {
+                    fill: true,
+                    pointRadius: 0,
+                    pointHitRadius: 0,
+                    borderColor: "rgba(33, 166, 81,1)",
+                    data: dataInput["deflection_value_pairs"],
+                    order: 2,
+                },
+                {
+                    fill: false,
+                    pointRadius: 6,
+                    pointHitRadius: 10,
+                    borderColor: "rgba(33, 166, 81,1)",
+                    borderWidth: 3,
+                    backgroundColor: "rgba(255,255,255,1)",
+                    data: dataInput["max_deflection_value_pairs"],
+                    order: 1,
+                    showLine: false,
+                },
+                {
+                    fill: true,
+                    pointRadius: 0,
+                    pointHitRadius: 0,
+                    borderColor: "rgba(65,65,65,.7)",
+                    data: [
+                        {'x':0, 'y':0 },
+                        {'x': dataInput['max_shear_value_pairs'].at(-1)['x'], 'y':0 }
+                    ],
+                    order: 3,
+                },
+            ]
+        };
+        // </block:setup>
+    
+        // <block:config:0>
+        const shearConfig = {
+        type: 'line',
+        data: shearData,
+        options: {
+            interaction: {
+                intersect: false,
+                mode: 'point',
+            },
+            tooltipLine: {
+            },
+            responsive: true,
+            scales: {
+                x: {
+                    type: 'linear',
+                    ticks: {
+                        /*
+                        callback: function(value, index, values) {
+                            return value + "'";
+                        },
+                        */
+                        // change function below to (beam length).ceil
+                        maxTicksLimit: 11,
+                        precision: 5,
+                    }
+                },
+                y: {
+                    type: 'linear',
+                    afterFit: function(scale) {
+                        scale.width = 50  
+                    },
+                    title: {
+                        display: true,
+                        text: 'Shear [k]'
+                    },
+                    ticks: {
+                        /*
+                        // Include a foot sign in the ticks
+                        callback: function(value, index, values) {
+                            return value + " k";
+                        }
+                        */
+                    }
+                },
+            },
+            onHover: (e) => {
+                var points = shearChart.getElementsAtEventForMode(e, 'point', {intersect: true}, true);
+
+                // set shearChart as the active chart
+                shearChart.options.tooltipLine.active = true;
+                momentChart.options.tooltipLine.active = false;
+                deflectionChart.options.tooltipLine.active = false;
+
+                momentChart.options.tooltipLine.intersectedX = null;
+                momentChart.options.tooltipLine.intersectedY = null;
+                deflectionChart.options.tooltipLine.intersectedX = null;
+                deflectionChart.options.tooltipLine.intersectedY = null;
+
+                if (points.length) {
+                    shearChart.options.tooltipLine.intersectedX = points[0].element.x;
+                    shearChart.options.tooltipLine.intersectedY = points[0].element.y;
+                    shearChart.options.tooltipLine.intersectedIndex = points[0].index;
+                    updateTooltip();
+                } else {
+                    shearChart.options.tooltipLine.intersectedX = null;
+                    shearChart.options.tooltipLine.intersectedY = null;
+                    updateTooltip();
+                }
+            },
+            plugins: {
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                    enabled: false,
+                    external: externalTooltipHandler
+                },
+                legend: {
+                    display: false,
+                },
+                hover: {
+                    mode: "nearest",
+                    intersect: true,
+                },
+            },
+        },
+        plugins: [tooltipLine]
+        };
+
+        const momentConfig = {
+            type: 'line',
+            data: momentData,
+            options: {
+            interaction: {
+                intersect: false,
+                mode: 'point',
+            },
+            tooltipLine: {
+            },
+            responsive: true,
+            scales: {
+                x: {
+                    type: 'linear',
+                    ticks: {
+                        /*
+                        callback: function(value, index, values) {
+                            return value + "'";
+                        },
+                        */
+                        // change function below to (beam length).ceil
+                        maxTicksLimit: 11,
+                        precision: 5
+                    }
+                },
+                y: {
+                    type: 'linear',
+                    afterFit: function(scale) {
+                    scale.width = 50  
+                    },
+                    title: {
+                        display: true,
+                        text: 'Moment [k-ft]'
+                    },
+                    ticks: {
+                        /*
+                        // Include a foot sign in the ticks
+                        callback: function(value, index, values) {
+                            return value + " k";
+                        }
+                        */
+                    }
+                },
+            },
+            onHover: (e) => {
+                var points = momentChart.getElementsAtEventForMode(e, 'point', {intersect: true}, true);
+
+                // set momentChart as active
+                shearChart.options.tooltipLine.active = false;
+                momentChart.options.tooltipLine.active = true;
+                deflectionChart.options.tooltipLine.active = false;
+
+                    shearChart.options.tooltipLine.intersectedX = null;
+                    shearChart.options.tooltipLine.intersectedY = null;
+                    deflectionChart.options.tooltipLine.intersectedX = null;
+                    deflectionChart.options.tooltipLine.intersectedY = null;
+
+                if (points.length) {
+                    momentChart.options.tooltipLine.intersectedX = points[0].element.x;
+                    momentChart.options.tooltipLine.intersectedY = points[0].element.y;
+                    momentChart.options.tooltipLine.intersectedIndex = points[0].index;
+                    updateTooltip();
+                } else {
+                    momentChart.options.tooltipLine.intersectedX = null;
+                    momentChart.options.tooltipLine.intersectedY = null;
+                    updateTooltip();
+                }
+            },
+            plugins: {
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                    enabled: false,
+                    external: externalTooltipHandler
+                },
+                legend: {
+                    display: false,
+                },
+                hover: {
+                    mode: "nearest",
+                    intersect: true,
+                },
+            },
+        },
+        plugins: [tooltipLine]
+        };
+
+        const deflectionConfig = {
+            type: 'line',
+            data: deflectionData,
+            options: {
+            interaction: {
+                intersect: false,
+                mode: 'point',
+            },
+            tooltipLine: {
+            },
+            responsive: true,
+            scales: {
+                x: {
+                    type: 'linear',
+                    ticks: {
+                        /*
+                        callback: function(value, index, values) {
+                            return value + "'";
+                        },
+                        */
+                        // change function below to (beam length).ceil
+                        maxTicksLimit: 11,
+                        precision: 5,
+                    }
+                },
+                y: {
+                    type: 'linear',
+                    afterFit: function(scale) {
+                        scale.width = 50  
+                    },
+                    ticks: {
+                        /*
+                        // Include a foot sign in the ticks
+                        callback: function(value, index, values) {
+                            return value + " k";
+                        }
+                        */
+                    }
+                },
+            },
+            onHover: (e) => {
+                var points = deflectionChart.getElementsAtEventForMode(e, 'point', {intersect: true}, true);
+    
+                // set shearChart as the active chart
+                deflectionChart.options.tooltipLine.active = true;
+                shearChart.options.tooltipLine.active = false;
+                momentChart.options.tooltipLine.active = false;
+    
+                momentChart.options.tooltipLine.intersectedX = null;
+                momentChart.options.tooltipLine.intersectedY = null;
+                shearChart.options.tooltipLine.intersectedX = null;
+                shearChart.options.tooltipLine.intersectedY = null;
+    
+                if (points.length) {
+                    deflectionChart.options.tooltipLine.intersectedX = points[0].element.x;
+                    deflectionChart.options.tooltipLine.intersectedY = points[0].element.y;
+                    deflectionChart.options.tooltipLine.intersectedIndex = points[0].index;
+                    updateTooltip();
+                } else {
+                        deflectionChart.options.tooltipLine.intersectedX = null;
+                        deflectionChart.options.tooltipLine.intersectedY = null;
+                        updateTooltip();
+                }
+            },
+            plugins: {
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                    enabled: false,
+                    external: externalTooltipHandler
+                },
+                legend: {
+                    display: false,
+                },
+                hover: {
+                    mode: "nearest",
+                    intersect: true,
+                },
+            },
+        },
+        plugins: [tooltipLine]
+        };
+  
+    // </block:config>
+      
+
+
+        /* ---------------------------------------------------------------------------------------------------------------------------------------------------------
+        end custom tooltip code
+        ------------------------------------------------------------------------------------------------------------------------------------------------------------ */
+        if (Chart.getChart(shearCtx)) {
+            Chart.getChart(shearCtx).destroy();
+        }
+        if (Chart.getChart(momentCtx)) {
+            Chart.getChart(momentCtx).destroy();
+        }
+        if (Chart.getChart(deflectionCtx)) {
+            Chart.getChart(deflectionCtx).destroy();
+        }
+        var shearChart = new Chart(shearCtx, shearConfig)
+        var momentChart = new Chart(momentCtx, momentConfig)
+        var deflectionChart = new Chart(deflectionCtx, deflectionConfig)
+    }
+</script>
+
+{% endblock externalScripts %}

@@ -1,11 +1,5 @@
-{% extends "beam/base.html" %}
+{% extends "beam/index.html" %}
 {% load static %}
-
-{% block content %}
-
-<!-- <div id="info">Description</div> -->
-
-{% endblock content %}
 
 {% block threejs %}
 
@@ -27,8 +21,8 @@
 
     let beam;
     let beamHeight = 8;
-    let coneHeight = -10;
-    let cylheight_max = 18;
+    let coneHeight = -8;
+    let cylheight_max = 14;
     let cylheight_min = 5;
     let cylThickness = .5;
     let gui;
@@ -290,7 +284,7 @@
     function init() {
 
         scene = new THREE.Scene();
-        scene.background = new THREE.Color( 0xffffff );
+        scene.background = new THREE.Color( 0xf9fafc );
         // scene.fog = new THREE.FogExp2( 0xcccccc, 0.002 );
         const canvas = document.querySelector("#content canvas");
 
@@ -377,10 +371,10 @@
             alphaToCoverage: true,
         } );
 
-        drawLine([[-100,0,-20],[-100, 0, -30]]);
-        drawLine([[100,0,-20],[100, 0, -30]]);
-        drawLine([[-100,0,-25],[-10, 0, -25]]);
-        drawLine([[100,0,-25],[10, 0, -25]]);
+        drawLine([[-100,0,-18],[-100, 0, -26]]);
+        drawLine([[100,0,-18],[100, 0, -26]]);
+        drawLine([[-100,0,-22],[-10, 0, -22]]);
+        drawLine([[100,0,-22],[10, 0, -22]]);
 
 
         // world
@@ -428,7 +422,7 @@
         canvas.addEventListener( 'click', onClick );
         document.addEventListener('keyup', onKeyUp);
         //draw_diagrams();
-        initGui();
+        // initGui();
 
         // const gui = new GUI();
         // gui.add( controls, 'screenSpacePanning' );
@@ -524,8 +518,15 @@
 
             // update camera position
             var vFOV = THREE.MathUtils.degToRad( camera.fov ); // convert vertical fov to radians
-            var desired_screen_width = 220
-            var dist = desired_screen_width / ( 2 * Math.tan(vFOV/2) * camera.aspect )
+            var desired_screen_width = 205;
+            var desired_screen_height = 73;
+
+            var dist_for_height = desired_screen_height / ( 2 * Math.tan(vFOV/2) )
+            var dist_for_width = desired_screen_width / ( 2 * Math.tan(vFOV/2) * camera.aspect )
+
+            var dist = Math.max(dist_for_height, dist_for_width)
+
+            console.log(dist_for_height, dist_for_width)
 
             var multiplier = dist / Math.sqrt(initialCamPos.x*initialCamPos.x+initialCamPos.y*initialCamPos.y+initialCamPos.z*initialCamPos.z) // I'm essentially linearly interpolating the camera on this line
             camera.position.set( initialCamPos.x*multiplier, initialCamPos.y*multiplier, initialCamPos.z*multiplier );
@@ -565,7 +566,7 @@
             CLICKED.material.color.set( 0x0000ff );
 
             // set value of hidden primary key field to the load index
-            $("#form-index").val(CLICKED.userData.index);
+            $("#form-index").val(+parseInt(CLICKED.userData.index).toFixed(4));
             $('#form-magnitude').val(beam.PLs.at(CLICKED.userData.index).magnitude)
             $('#form-location').val(beam.PLs.at(CLICKED.userData.index).startLocation)
         }
@@ -647,6 +648,30 @@
 
     }
 
+    $(".load-table-input").focusout(function (e) {
+        e.preventDefault();
+        const attributeArray = e.target.id.split("-");
+        
+        if (attributeArray[0] == 'Point') {
+            var load = beam.PLs.at(attributeArray[2])
+        } else if (attributeArray[0] == 'Distributed') {
+
+        } else {
+
+        }
+
+        if (attributeArray[1] == 'Index') {
+            
+        } else if (attributeArray[1] == 'Magnitude') {
+            load.magnitude = parseFloat(e.target.value);
+        } else {
+            load.startLocation = parseFloat(e.target.value);
+        }
+
+        beam.drawLoad(load)
+        console.log(e, e.target.value)
+    });
+
     $("#sidebar").mouseleave(function (e) {
         e.preventDefault();
         // get the point load primary key
@@ -670,7 +695,6 @@
                 'L': beam.L,
             },
             success: function (response) {
-                console.log(response["L"]);
                 // part = $(".vendorpart").val(response["part"]);
                 // cost = $(".vendorcost").val(response["cost"]);
             },
@@ -679,7 +703,6 @@
             }
         })
     });
-    {% block scripts %} {% endblock scripts %}
 
 </script>
 

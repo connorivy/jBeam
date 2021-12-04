@@ -9,9 +9,9 @@ class addPointLoad(forms.Form):
     helper = FormHelper()
     helper.form_show_labels = False
 
-    index = forms.IntegerField(widget=forms.NumberInput(attrs={'class': 'form-control form-control-sm', 'id': 'form-index'}))
-    magnitude = forms.DecimalField(widget=forms.NumberInput(attrs={'class': 'form-control form-control-sm', 'id': 'form-magnitude'}))
-    location = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control form-control-sm', 'id': 'form-location'}))
+    index = forms.IntegerField(widget=forms.NumberInput(attrs={'class': 'form-control form-control-sm bg-transparent border-transparent', 'id': 'form-index'}))
+    magnitude = forms.DecimalField(widget=forms.NumberInput(attrs={'class': 'form-control form-control-sm bg-transparent border-transparent', 'id': 'form-magnitude'}))
+    location = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control form-control-sm bg-transparent border-transparent', 'id': 'form-location'}))
 
     def save(self):
         data = self.cleaned_data

@@ -1,0 +1,1353 @@
+{% load static %}
+{% load crispy_forms_tags %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Required Meta Tags Always Come First -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <!-- Title -->
+  <title>jBeam</title>
+
+  <!-- Favicon -->
+  <link rel="shortcut icon" href="{% static 'beam/favicon.ico' %}">
+
+  <!-- Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.10.0/css/all.css" integrity="sha384-AYmEC3Yw5cVb3ZcuHtOA93w35dYTsvhLPVnYs9eStHfGJvOvKxVfELGroGkvsg+p" crossorigin="anonymous"/>
+
+  <!-- CSS Implementing Plugins -->
+  <link rel="stylesheet" href="{% static 'beam/assets/css/vendor.min.css' %}">
+  <link rel="stylesheet" href="{% static 'beam/assets/vendor/icon-set/style.css' %}">
+
+  <!-- CSS Front Template -->
+  <link rel="stylesheet" href="{% static 'beam/assets/css/theme.min.css' %}">
+
+  <!-- Chart js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body class="has-navbar-vertical-aside navbar-vertical-aside-show-xl navbar-vertical-aside-closed-mode splitted-content">
+  <!-- ========== MAIN CONTENT ========== -->
+  <!-- Navbar Vertical -->
+  <aside class="js-navbar-vertical-aside navbar navbar-vertical-aside navbar-vertical navbar-vertical-fixed navbar-expand-lg navbar-bordered splitted-content-navbar">
+    <div class="navbar-vertical-container">
+      <div class="navbar-vertical-footer-offset">
+        <!-- Content -->
+        <div class="navbar-vertical-content">
+          <!-- Mini Content -->
+          <div class="splitted-content-mini navbar-dark h-100 py-2">
+            <a class="navbar-brand d-flex justify-content-center mb-3" href="{% static 'beam/index.html' %}" aria-label="Front">
+              <img class="navbar-brand-logo-short" src="{% static 'beam/assets/svg/logos/logo-short-white.svg' %}" alt="Logo">
+            </a>
+
+            <ul class="nav nav-compact-icon nav-compact-icon-circle">
+              <li class="nav-item">
+                <a class="nav-icon " href="{% static 'beam/index.html' %}">
+                  <i class="fas fa-folder-open"></i>
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-icon " href="{% static 'beam/users.html' %}">
+                  <i class="fas fa-book"></i>
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-icon " href="{% static 'beam/kanban.html' %}">
+                  <i class="fas fa-building"></i>
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-icon " href="{% static 'beam/authentication-signin-basic.html' %}">
+                  <i class="fas fa-long-arrow-alt-down"></i>
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-icon " onclick="draw_diagrams()">
+                  <i class="fas fa-calculator"></i>
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-icon active" href="{% static 'beam/layouts.html' %}">
+                  <i class="fas fa-poll-h"></i>
+                </a>
+              </li>
+            </ul>
+
+            <ul class="nav nav-compact-icon nav-compact-icon-circle mt-auto">
+              <li class="nav-item">
+                <div class="hs-unfold">
+                  <a class="js-hs-unfold-invoker navbar-dropdown-account-wrapper" href="javascript:;"
+                     data-hs-unfold-options='{
+                       "target": "#accountDropdown",
+                       "type": "css-animation",
+                       "animationIn": "slideInDown"
+                     }'>
+                    <div class="avatar avatar-sm avatar-circle">
+                      <img class="avatar-img" src="{% static 'beam/assets/img/160x160/img6.jpg' %}" alt="Image Description">
+                      <span class="avatar-status avatar-sm-status avatar-status-success"></span>
+                    </div>
+                  </a>
+
+                  <div id="accountDropdown" class="hs-unfold-content dropdown-unfold dropdown-menu dropdown-menu-right navbar-dropdown-menu navbar-dropdown-account" style="width: 16rem;">
+                    <div class="dropdown-item-text">
+                      <div class="media align-items-center">
+                        <div class="avatar avatar-sm avatar-circle mr-2">
+                          <img class="avatar-img" src="{% static 'beam/assets/img/160x160/img6.jpg' %}" alt="Image Description">
+                        </div>
+                        <div class="media-body">
+                          <span class="card-title h5">Mark Williams</span>
+                          <span class="card-text">mark@example.com</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="dropdown-divider"></div>
+
+                    <!-- Unfold -->
+                    <div class="hs-unfold w-100">
+                      <a class="js-hs-unfold-invoker navbar-dropdown-submenu-item dropdown-item d-flex align-items-center" href="javascript:;"
+                         data-hs-unfold-options='{
+                           "target": "#navSubmenuPagesAccountDropdown1",
+                           "event": "hover",
+                           "smartPositionOff": true
+                         }'>
+                        <span class="text-truncate pr-2" title="Set status">Set status</span>
+                        <i class="tio-chevron-right navbar-dropdown-submenu-item-invoker  ml-auto"></i>
+                      </a>
+
+                      <div id="navSubmenuPagesAccountDropdown1" class="hs-unfold-content hs-unfold-has-submenu-right dropdown-unfold dropdown-menu navbar-dropdown-sub-menu">
+                        <a class="dropdown-item" href="#">
+                          <span class="legend-indicator bg-success mr-1"></span>
+                          <span class="text-truncate pr-2" title="Available">Available</span>
+                        </a>
+                        <a class="dropdown-item" href="#">
+                          <span class="legend-indicator bg-danger mr-1"></span>
+                          <span class="text-truncate pr-2" title="Busy">Busy</span>
+                        </a>
+                        <a class="dropdown-item" href="#">
+                          <span class="legend-indicator bg-warning mr-1"></span>
+                          <span class="text-truncate pr-2" title="Away">Away</span>
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" href="#">
+                          <span class="text-truncate pr-2" title="Reset status">Reset status</span>
+                        </a>
+                      </div>
+                    </div>
+                    <!-- End Unfold -->
+
+                    <a class="dropdown-item" href="#">
+                      <span class="text-truncate pr-2" title="Profile &amp; account">Profile &amp; account</span>
+                    </a>
+
+                    <a class="dropdown-item" href="#">
+                      <span class="text-truncate pr-2" title="Settings">Settings</span>
+                    </a>
+
+                    <div class="dropdown-divider"></div>
+
+                    <a class="dropdown-item" href="#">
+                      <div class="media align-items-center">
+                        <div class="avatar avatar-sm avatar-dark avatar-circle mr-2">
+                          <span class="avatar-initials">HS</span>
+                        </div>
+                        <div class="media-body">
+                          <span class="card-title h5">Htmlstream <span class="badge badge-primary badge-pill text-uppercase ml-1">PRO</span></span>
+                          <span class="card-text">hs.example.com</span>
+                        </div>
+                      </div>
+                    </a>
+
+                    <div class="dropdown-divider"></div>
+
+                    <!-- Unfold -->
+                    <div class="hs-unfold w-100">
+                      <a class="js-hs-unfold-invoker navbar-dropdown-submenu-item dropdown-item d-flex align-items-center" href="javascript:;"
+                         data-hs-unfold-options='{
+                           "target": "#navSubmenuPagesAccountDropdown2",
+                           "event": "hover",
+                           "smartPositionOff": true
+                         }'>
+                        <span class="text-truncate pr-2" title="Customization">Customization</span>
+                        <i class="tio-chevron-right navbar-dropdown-submenu-item-invoker  ml-auto"></i>
+                      </a>
+
+                      <div id="navSubmenuPagesAccountDropdown2" class="hs-unfold-content hs-unfold-has-submenu-right dropdown-unfold dropdown-menu navbar-dropdown-sub-menu">
+                        <a class="dropdown-item" href="#">
+                          <span class="text-truncate pr-2" title="Invite people">Invite people</span>
+                        </a>
+                        <a class="dropdown-item" href="#">
+                          <span class="text-truncate pr-2" title="Analytics">Analytics</span>
+                          <i class="tio-open-in-new"></i>
+                        </a>
+                        <a class="dropdown-item" href="#">
+                          <span class="text-truncate pr-2" title="Customize Front">Customize Front</span>
+                          <i class="tio-open-in-new"></i>
+                        </a>
+                      </div>
+                    </div>
+                    <!-- End Unfold -->
+
+                    <a class="dropdown-item" href="#">
+                      <span class="text-truncate pr-2" title="Manage team">Manage team</span>
+                    </a>
+
+                    <div class="dropdown-divider"></div>
+
+                    <a class="dropdown-item" href="#">
+                      <span class="text-truncate pr-2" title="Sign out">Sign out</span>
+                    </a>
+                  </div>
+                </div>
+              </li>
+            </ul>
+          </div>
+          <!-- End Mini Content -->
+
+          {% block leftsidebar %} {% endblock %}
+          <!-- <ul class="navbar-nav navbar-nav-lg nav-tabs navbar-vertical-without-icons pt-2"> -->
+            <!-- Dashboards -->
+            <!-- <li class="navbar-vertical-aside-has-menu ">
+              <a class="js-navbar-vertical-aside-menu-link nav-link nav-link-toggle " href="javascript:;">
+                <span class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate" title="Dashboards">Dashboards</span>
+              </a>
+
+              <ul class="js-navbar-vertical-aside-submenu nav nav-sub">
+                <li class="nav-item">
+                  <a class="nav-link " href="{% static 'beam/index.html' %}">
+                    <span class="tio-circle nav-indicator-icon"></span>
+                    <span class="text-truncate" title="Default">Default</span>
+                  </a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link " href="{% static 'beam/dashboard-alternative.html' %}">
+                    <span class="tio-circle nav-indicator-icon"></span>
+                    <span class="text-truncate" title="Alternative">Alternative</span>
+                  </a>
+                </li>
+              </ul>
+            </li> -->
+            <!-- End Dashboards -->
+
+            <!-- <li class="nav-item">
+              <small class="nav-subtitle text-truncate" title="Pages">Pages</small>
+            </li> -->
+
+            <!-- Pages -->
+            <!-- <li class="navbar-vertical-aside-has-menu ">
+              <a class="js-navbar-vertical-aside-menu-link nav-link nav-link-toggle " href="javascript:;">
+                <span class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate" title="Pages">Pages</span>
+              </a>
+
+              <ul class="js-navbar-vertical-aside-submenu nav nav-sub">
+                <li class="navbar-vertical-aside-has-menu ">
+                  <a class="js-navbar-vertical-aside-menu-link nav-link nav-link-toggle" href="javascript:;">
+                    <span class="tio-circle nav-indicator-icon"></span>
+                    <span class="text-truncate" title="Users">Users</span>
+                  </a>
+
+                  <ul class="js-navbar-vertical-aside-submenu nav nav-sub">
+                    <li class="nav-item">
+                      <a class="nav-link " href="{% static 'beam/users.html' %}">
+                        <span class="tio-circle-outlined nav-indicator-icon"></span>
+                        <span class="text-truncate" title="Overview">Overview</span>
+                      </a>
+                    </li>
+                    <li class="nav-item">
+                      <a class="nav-link " href="{% static 'beam/users-leaderboard.html' %}">
+                        <span class="tio-circle-outlined nav-indicator-icon"></span>
+                        <span class="text-truncate" title="Leaderboard">Leaderboard</span>
+                      </a>
+                    </li>
+                    <li class="nav-item">
+                      <a class="nav-link " href="{% static 'beam/users-add-user.html' %}">
+                        <span class="tio-circle-outlined nav-indicator-icon"></span>
+                        <span class="text-truncate" title="Add User">Add User <span class="badge badge-info badge-pill ml-1">Hot</span></span>
+                      </a>
+                    </li>
+                  </ul>
+                </li>
+
+                <li class="navbar-vertical-aside-has-menu ">
+                  <a class="js-navbar-vertical-aside-menu-link nav-link nav-link-toggle" href="javascript:;">
+                    <span class="tio-circle nav-indicator-icon"></span>
+                    <span class="text-truncate" title="User Profile">User Profile <span class="badge badge-primary badge-pill ml-1">5</span></span>
+                  </a>
+
+                  <ul class="js-navbar-vertical-aside-submenu nav nav-sub">
+                    <li class="nav-item">
+                      <a class="nav-link " href="{% static 'beam/user-profile.html' %}">
+                        <span class="tio-circle-outlined nav-indicator-icon"></span>
+                        <span class="text-truncate" title="Profile">Profile</span>
+                      </a>
+                    </li>
+                    <li class="nav-item">
+                      <a class="nav-link " href="{% static 'beam/user-profile-teams.html' %}">
+                        <span class="tio-circle-outlined nav-indicator-icon"></span>
+                        <span class="text-truncate" title="Teams">Teams</span>
+                      </a>
+                    </li>
+                    <li class="nav-item">
+                      <a class="nav-link " href="{% static 'beam/user-profile-projects.html' %}">
+                        <span class="tio-circle-outlined nav-indicator-icon"></span>
+                        <span class="text-truncate" title="Projects">Projects</span>
+                      </a>
+                    </li>
+                    <li class="nav-item">
+                      <a class="nav-link " href="{% static 'beam/user-profile-connections.html' %}">
+                        <span class="tio-circle-outlined nav-indicator-icon"></span>
+                        <span class="text-truncate" title="Connections">Connections</span>
+                      </a>
+                    </li>
+                    <li class="nav-item">
+                      <a class="nav-link " href="{% static 'beam/user-profile-my-profile.html' %}">
+                        <span class="tio-circle-outlined nav-indicator-icon"></span>
+                        <span class="text-truncate" title="My Profile">My Profile</span>
+                      </a>
+                    </li>
+                  </ul>
+                </li>
+
+                <li class="navbar-vertical-aside-has-menu ">
+                  <a class="js-navbar-vertical-aside-menu-link nav-link nav-link-toggle" href="javascript:;">
+                    <span class="tio-circle nav-indicator-icon"></span>
+                    <span class="text-truncate" title="Account">Account</span>
+                  </a>
+
+                  <ul class="js-navbar-vertical-aside-submenu nav nav-sub">
+                    <li class="nav-item">
+                      <a class="nav-link " href="{% static 'beam/account-settings.html' %}">
+                        <span class="tio-circle-outlined nav-indicator-icon"></span>
+                        <span class="text-truncate" title="Settings">Settings</span>
+                      </a>
+                    </li>
+                    <li class="nav-item">
+                      <a class="nav-link " href="{% static 'beam/account-billing.html' %}">
+                        <span class="tio-circle-outlined nav-indicator-icon"></span>
+                        <span class="text-truncate" title="Billing">Billing</span>
+                      </a>
+                    </li>
+                    <li class="nav-item">
+                      <a class="nav-link " href="{% static 'beam/account-invoice.html' %}">
+                        <span class="tio-circle-outlined nav-indicator-icon"></span>
+                        <span class="text-truncate" title="Invoice">Invoice</span>
+                      </a>
+                    </li>
+                    <li class="nav-item">
+                      <a class="nav-link " href="{% static 'beam/account-api-keys.html' %}">
+                        <span class="tio-circle-outlined nav-indicator-icon"></span>
+                        <span class="text-truncate" title="API Keys">API Keys</span>
+                      </a>
+                    </li>
+                  </ul>
+                </li>
+
+                <li class="navbar-vertical-aside-has-menu ">
+                  <a class="js-navbar-vertical-aside-menu-link nav-link nav-link-toggle" href="javascript:;" title="E-commerce">
+                    <span class="tio-circle nav-indicator-icon"></span>
+                    <span class="text-truncate">E-commerce</span>
+                  </a>
+
+                  <ul class="js-navbar-vertical-aside-submenu nav nav-sub">
+                    <li class="nav-item">
+                      <a class="nav-link " href="{% static 'beam/ecommerce.html' %}" title="Overview">
+                        <span class="tio-circle-outlined nav-indicator-icon"></span>
+                        <span class="text-truncate">Overview</span>
+                      </a>
+                    </li>
+
+                    <li class="navbar-vertical-aside-has-menu ">
+                      <a class="js-navbar-vertical-aside-menu-link nav-link nav-link-toggle" href="javascript:;" title="Products">
+                        <span class="tio-circle-outlined nav-indicator-icon"></span>
+                        <span class="text-truncate">Products</span>
+                      </a>
+
+                      <ul class="js-navbar-vertical-aside-submenu nav nav-sub">
+                        <li class="nav-item">
+                          <a class="nav-link " href="{% static 'beam/ecommerce-products.html' %}" title="Products">
+                            <span class="tio-circle nav-indicator-icon"></span>
+                            <span class="text-truncate">Products</span>
+                          </a>
+                        </li>
+                        <li class="nav-item">
+                          <a class="nav-link " href="{% static 'beam/ecommerce-product-details.html' %}" title="Product Details">
+                            <span class="tio-circle nav-indicator-icon"></span>
+                            <span class="text-truncate">Product Details</span>
+                          </a>
+                        </li>
+                        <li class="nav-item">
+                          <a class="nav-link " href="{% static 'beam/ecommerce-add-product.html' %}" title="Add Product">
+                            <span class="tio-circle-outlined nav-indicator-icon"></span>
+                            <span class="text-truncate">Add Product</span>
+                          </a>
+                        </li>
+                      </ul>
+                    </li>
+
+                    <li class="navbar-vertical-aside-has-menu ">
+                      <a class="js-navbar-vertical-aside-menu-link nav-link nav-link-toggle" href="javascript:;" title="Orders">
+                        <span class="tio-circle-outlined nav-indicator-icon"></span>
+                        <span class="text-truncate">Orders</span>
+                      </a>
+
+                      <ul class="js-navbar-vertical-aside-submenu nav nav-sub">
+                        <li class="nav-item">
+                          <a class="nav-link " href="{% static 'beam/ecommerce-orders.html' %}" title="Orders">
+                            <span class="tio-circle nav-indicator-icon"></span>
+                            <span class="text-truncate">Orders</span>
+                          </a>
+                        </li>
+                        <li class="nav-item">
+                          <a class="nav-link " href="{% static 'beam/ecommerce-order-details.html' %}" title="Order Details">
+                            <span class="tio-circle nav-indicator-icon"></span>
+                            <span class="text-truncate">Order Details</span>
+                          </a>
+                        </li>
+                      </ul>
+                    </li>
+
+                    <li class="navbar-vertical-aside-has-menu ">
+                      <a class="js-navbar-vertical-aside-menu-link nav-link nav-link-toggle" href="javascript:;" title="Customers">
+                        <span class="tio-circle-outlined nav-indicator-icon"></span>
+                        <span class="text-truncate">Customers</span>
+                      </a>
+
+                      <ul class="js-navbar-vertical-aside-submenu nav nav-sub">
+                        <li class="nav-item">
+                          <a class="nav-link " href="{% static 'beam/ecommerce-customers.html' %}" title="Customers">
+                            <span class="tio-circle nav-indicator-icon"></span>
+                            <span class="text-truncate">Customers</span>
+                          </a>
+                        </li>
+                        <li class="nav-item">
+                          <a class="nav-link " href="{% static 'beam/ecommerce-customer-details.html' %}" title="Customer Details">
+                            <span class="tio-circle nav-indicator-icon"></span>
+                            <span class="text-truncate">Customer Details</span>
+                          </a>
+                        </li>
+                        <li class="nav-item">
+                          <a class="nav-link " href="{% static 'beam/ecommerce-add-customers.html' %}" title="Add Customers">
+                            <span class="tio-circle nav-indicator-icon"></span>
+                            <span class="text-truncate">Add Customers</span>
+                          </a>
+                        </li>
+                      </ul>
+                    </li>
+
+                    <li class="nav-item">
+                      <a class="nav-link " href="{% static 'beam/ecommerce-manage-reviews.html' %}" title="Manage Reviews">
+                        <span class="tio-circle-outlined nav-indicator-icon"></span>
+                        <span class="text-truncate">Manage Reviews</span>
+                      </a>
+                    </li>
+                    <li class="nav-item">
+                      <a class="nav-link " href="{% static 'beam/ecommerce-checkout.html' %}" title="Checkout">
+                        <span class="tio-circle-outlined nav-indicator-icon"></span>
+                        <span class="text-truncate">Checkout</span>
+                      </a>
+                    </li>
+                  </ul>
+                </li>
+
+                <li class="navbar-vertical-aside-has-menu ">
+                  <a class="js-navbar-vertical-aside-menu-link nav-link nav-link-toggle" href="javascript:;">
+                    <span class="tio-circle nav-indicator-icon"></span>
+                    <span class="text-truncate" title="Projects">Projects</span>
+                  </a>
+
+                  <ul class="js-navbar-vertical-aside-submenu nav nav-sub">
+                    <li class="nav-item">
+                      <a class="nav-link " href="{% static 'beam/projects.html' %}">
+                        <span class="tio-circle-outlined nav-indicator-icon"></span>
+                        <span class="text-truncate" title="Overview">Overview</span>
+                      </a>
+                    </li>
+                    <li class="nav-item">
+                      <a class="nav-link " href="{% static 'beam/projects-timeline.html' %}">
+                        <span class="tio-circle-outlined nav-indicator-icon"></span>
+                        <span class="text-truncate" title="Timeline">Timeline</span>
+                      </a>
+                    </li>
+                  </ul>
+                </li>
+
+                <li class="navbar-vertical-aside-has-menu ">
+                  <a class="js-navbar-vertical-aside-menu-link nav-link nav-link-toggle" href="javascript:;">
+                    <span class="tio-circle nav-indicator-icon"></span>
+                    <span class="text-truncate" title="Project">Project</span>
+                  </a>
+
+                  <ul class="js-navbar-vertical-aside-submenu nav nav-sub">
+                    <li class="nav-item">
+                      <a class="nav-link " href="project.html' %}">
+                        <span class="tio-circle-outlined nav-indicator-icon"></span>
+                        <span class="text-truncate" title="Overview">Overview</span>
+                      </a>
+                    </li>
+                    <li class="nav-item">
+                      <a class="nav-link " href="{% static 'beam/project-files.html' %}">
+                        <span class="tio-circle-outlined nav-indicator-icon"></span>
+                        <span class="text-truncate" title="Files">Files <span class="badge badge-info badge-pill ml-1">Hot</span></span>
+                      </a>
+                    </li>
+                    <li class="nav-item">
+                      <a class="nav-link " href="{% static 'beam/project-activity.html' %}">
+                        <span class="tio-circle-outlined nav-indicator-icon"></span>
+                        <span class="text-truncate" title="Activity">Activity</span>
+                      </a>
+                    </li>
+                    <li class="nav-item">
+                      <a class="nav-link " href="{% static 'beam/project-teams.html' %}">
+                        <span class="tio-circle-outlined nav-indicator-icon"></span>
+                        <span class="text-truncate" title="Teams">Teams</span>
+                      </a>
+                    </li>
+                    <li class="nav-item">
+                      <a class="nav-link " href="{% static 'beam/project-settings.html' %}">
+                        <span class="tio-circle-outlined nav-indicator-icon"></span>
+                        <span class="text-truncate" title="Settings">Settings</span>
+                      </a>
+                    </li>
+                  </ul>
+                </li>
+    
+                <li class="nav-item">
+                  <a class="nav-link " href="{% static 'beam/referrals.html' %}" title="Referrals">
+                    <span class="tio-circle nav-indicator-icon"></span>
+                    <span class="text-truncate">Referrals</span>
+                  </a>
+                </li>
+              </ul>
+            </li> -->
+            <!-- End Pages -->
+
+            <!-- Apps -->
+            <!-- <li class="navbar-vertical-aside-has-menu ">
+              <a class="js-navbar-vertical-aside-menu-link nav-link nav-link-toggle " href="javascript:;">
+                <span class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate" title="Apps">Apps <span class="badge badge-info badge-pill ml-1">Hot</span></span>
+              </a>
+
+              <ul class="js-navbar-vertical-aside-submenu nav nav-sub">
+                <li class="nav-item">
+                  <a class="nav-link " href="{% static 'beam/apps-kanban.html' %}">
+                    <span class="tio-circle nav-indicator-icon"></span>
+                    <span class="text-truncate" title="Kanban">Kanban</span>
+                  </a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link " href="{% static 'beam/apps-calendar.html' %}" title="Calendar">
+                    <span class="tio-circle nav-indicator-icon"></span>
+                    <span class="text-truncate">Calendar <span class="badge badge-info badge-pill ml-1">New</span></span>
+                  </a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link " href="{% static 'beam/apps-invoice-generator.html' %}">
+                    <span class="tio-circle nav-indicator-icon"></span>
+                    <span class="text-truncate" title="Invoice Generator">Invoice Generator</span>
+                  </a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link " href="{% static 'beam/apps-file-manager.html' %}">
+                    <span class="tio-circle nav-indicator-icon"></span>
+                    <span class="text-truncate" title="File Manager">File Manager</span>
+                  </a>
+                </li>
+              </ul>
+            </li> -->
+            <!-- End Apps -->
+
+            <!-- Authentication -->
+            <!-- <li class="navbar-vertical-aside-has-menu ">
+              <a class="js-navbar-vertical-aside-menu-link nav-link nav-link-toggle " href="javascript:;">
+                <span class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate" title="Authentication">Authentication</span>
+              </a>
+
+              <ul class="js-navbar-vertical-aside-submenu nav nav-sub">
+                <li class="navbar-vertical-aside-has-menu ">
+                  <a class="js-navbar-vertical-aside-menu-link nav-link nav-link-toggle" href="javascript:;">
+                    <span class="tio-circle nav-indicator-icon"></span>
+                    <span class="text-truncate" title="Sign In">Sign In</span>
+                  </a>
+
+                  <ul class="js-navbar-vertical-aside-submenu nav nav-sub">
+                    <li class="nav-item">
+                      <a class="nav-link " href="{% static 'beam/authentication-signin-basic.html' %}">
+                        <span class="tio-circle-outlined nav-indicator-icon"></span>
+                        <span class="text-truncate" title="Basic">Basic</span>
+                      </a>
+                    </li>
+                    <li class="nav-item">
+                      <a class="nav-link " href="{% static 'beam/authentication-signin-cover.html' %}">
+                        <span class="tio-circle-outlined nav-indicator-icon"></span>
+                        <span class="text-truncate" title="Cover">Cover</span>
+                      </a>
+                    </li>
+                  </ul>
+                </li>
+
+                <li class="navbar-vertical-aside-has-menu ">
+                  <a class="js-navbar-vertical-aside-menu-link nav-link nav-link-toggle" href="javascript:;">
+                    <span class="tio-circle nav-indicator-icon"></span>
+                    <span class="text-truncate" title="Sign Up">Sign Up</span>
+                  </a>
+
+                  <ul class="js-navbar-vertical-aside-submenu nav nav-sub">
+                    <li class="nav-item">
+                      <a class="nav-link " href="{% static 'beam/authentication-signup-basic.html' %}">
+                        <span class="tio-circle-outlined nav-indicator-icon"></span>
+                        <span class="text-truncate" title="Basic">Basic</span>
+                      </a>
+                    </li>
+                    <li class="nav-item">
+                      <a class="nav-link " href="{% static 'beam/authentication-signup-cover.html' %}">
+                        <span class="tio-circle-outlined nav-indicator-icon"></span>
+                        <span class="text-truncate" title="Cover">Cover</span>
+                      </a>
+                    </li>
+                  </ul>
+                </li>
+
+                <li class="navbar-vertical-aside-has-menu ">
+                  <a class="js-navbar-vertical-aside-menu-link nav-link nav-link-toggle" href="javascript:;">
+                    <span class="tio-circle nav-indicator-icon"></span>
+                    <span class="text-truncate" title="Reset Password">Reset Password</span>
+                  </a>
+
+                  <ul class="js-navbar-vertical-aside-submenu nav nav-sub">
+                    <li class="nav-item">
+                      <a class="nav-link " href="{% static 'beam/authentication-reset-password-basic.html' %}">
+                        <span class="tio-circle-outlined nav-indicator-icon"></span>
+                        <span class="text-truncate" title="Basic">Basic</span>
+                      </a>
+                    </li>
+                    <li class="nav-item">
+                      <a class="nav-link " href="{% static 'beam/authentication-reset-password-cover.html' %}">
+                        <span class="tio-circle-outlined nav-indicator-icon"></span>
+                        <span class="text-truncate" title="Cover">Cover</span>
+                      </a>
+                    </li>
+                  </ul>
+                </li>
+
+                <li class="navbar-vertical-aside-has-menu ">
+                  <a class="js-navbar-vertical-aside-menu-link nav-link nav-link-toggle" href="javascript:;">
+                    <span class="tio-circle nav-indicator-icon"></span>
+                    <span class="text-truncate" title="Email Verification">Email Verification</span>
+                  </a>
+
+                  <ul class="js-navbar-vertical-aside-submenu nav nav-sub">
+                    <li class="nav-item">
+                      <a class="nav-link " href="{% static 'beam/authentication-email-verification-basic.html' %}">
+                        <span class="tio-circle-outlined nav-indicator-icon"></span>
+                        <span class="text-truncate" title="Basic">Basic</span>
+                      </a>
+                    </li>
+                    <li class="nav-item">
+                      <a class="nav-link " href="{% static 'beam/authentication-email-verification-cover.html' %}">
+                        <span class="tio-circle-outlined nav-indicator-icon"></span>
+                        <span class="text-truncate" title="Cover">Cover</span>
+                      </a>
+                    </li>
+                  </ul>
+                </li>
+
+                <li class="navbar-vertical-aside-has-menu ">
+                  <a class="js-navbar-vertical-aside-menu-link nav-link nav-link-toggle" href="javascript:;">
+                    <span class="tio-circle nav-indicator-icon"></span>
+                    <span class="text-truncate" title="2-step Verification">2-step Verification</span>
+                  </a>
+
+                  <ul class="js-navbar-vertical-aside-submenu nav nav-sub">
+                    <li class="nav-item">
+                      <a class="nav-link " href="{% static 'beam/authentication-two-step-verification-basic.html' %}">
+                        <span class="tio-circle-outlined nav-indicator-icon"></span>
+                        <span class="text-truncate" title="Basic">Basic</span>
+                      </a>
+                    </li>
+                    <li class="nav-item">
+                      <a class="nav-link " href="{% static 'beam/authentication-two-step-verification-cover.html' %}">
+                        <span class="tio-circle-outlined nav-indicator-icon"></span>
+                        <span class="text-truncate" title="Cover">Cover</span>
+                      </a>
+                    </li>
+                  </ul>
+                </li>
+
+                <li class="nav-item">
+                  <a class="nav-link" href="javascript:;" data-toggle="modal" data-target="#welcomeMessageModal">
+                    <span class="tio-circle nav-indicator-icon"></span>
+                    <span class="text-truncate" title="Welcome Message">Welcome Message</span>
+                  </a>
+                </li>
+
+                <li class="nav-item">
+                  <a class="nav-link " href="{% static 'beam/error-404.html' %}">
+                    <span class="tio-circle nav-indicator-icon"></span>
+                    <span class="text-truncate" title="Error 404">Error 404</span>
+                  </a>
+                </li>
+              </ul>
+            </li> -->
+            <!-- End Authentication -->
+
+            <!-- <li class="nav-item ">
+              <a class="nav-link " href="{% static 'beam/welcome-page.html' %}">
+                <span class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate" title="Welcome Page">Welcome Page</span>
+              </a>
+            </li> -->
+
+            <!-- <li class="nav-item">
+              <small class="nav-subtitle text-truncate" title="Layouts">Layouts</small>
+            </li> -->
+
+            <!-- <li class="nav-item active">
+              <a class="nav-link active" href="{% static 'beam/layouts/layouts.html' %}">
+                <span class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate" title="Layouts">Layouts</span>
+              </a>
+            </li> -->
+
+            <!-- <li class="nav-item">
+              <div class="nav-divider"></div>
+            </li> -->
+
+            <!-- <li class="nav-item">
+              <small class="nav-subtitle text-truncate" title="Documentation">Documentation</small>
+            </li> -->
+
+            <!-- <li class="nav-item ">
+              <a class="nav-link" href="{% static 'beam/documentation/index.html' %}">
+                <span class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate" title="Documentation">Documentation <span class="badge badge-primary badge-pill ml-1">v1.1</span></span>
+              </a>
+            </li> -->
+
+            <!-- <li class="nav-item ">
+              <a class="nav-link" href="{% static 'beam/documentation/typography.html' %}">
+                <span class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate" title="Components">Components</span>
+              </a>
+            </li> -->
+          <!-- </ul> -->
+        </div>
+        <!-- End Content -->
+
+        <!-- ========== FOOTER ========== -->
+        <div class="navbar-vertical-footer">
+          <ul class="navbar-vertical-footer-list">
+            <li class="navbar-vertical-footer-list-item">
+              <!-- Unfold -->
+              <div class="hs-unfold">
+                <a class="js-hs-unfold-invoker btn btn-icon btn-ghost-secondary rounded-circle" href="javascript:;" data-hs-unfold-options="{
+                    &quot;target&quot;: &quot;#styleSwitcherDropdown&quot;,
+                    &quot;type&quot;: &quot;css-animation&quot;,
+                    &quot;animationIn&quot;: &quot;fadeInRight&quot;,
+                    &quot;animationOut&quot;: &quot;fadeOutRight&quot;,
+                    &quot;hasOverlay&quot;: true,
+                    &quot;smartPositionOff&quot;: true
+                   }" data-hs-unfold-target="#styleSwitcherDropdown" data-hs-unfold-invoker="">
+                  <i class="tio-tune"></i>
+                </a>
+              </div>
+              <!-- End Unfold -->
+            </li>
+  
+            <li class="navbar-vertical-footer-list-item">
+              <!-- Other Links -->
+              <div class="hs-unfold">
+                <a class="js-hs-unfold-invoker btn btn-icon btn-ghost-secondary rounded-circle" href="javascript:;" data-hs-unfold-options="{
+                    &quot;target&quot;: &quot;#otherLinksDropdown&quot;,
+                    &quot;type&quot;: &quot;css-animation&quot;,
+                    &quot;animationIn&quot;: &quot;slideInDown&quot;,
+                    &quot;hideOnScroll&quot;: true
+                   }" data-hs-unfold-target="#otherLinksDropdown" data-hs-unfold-invoker="">
+                  <i class="tio-help-outlined"></i>
+                </a>
+  
+                <div id="otherLinksDropdown" class="hs-unfold-content dropdown-unfold dropdown-menu navbar-vertical-footer-dropdown hs-unfold-content-initialized hs-unfold-css-animation animated hs-unfold-reverse-y hs-unfold-hidden" data-hs-target-height="275" data-hs-unfold-content="" data-hs-unfold-content-animation-in="slideInDown" data-hs-unfold-content-animation-out="fadeOut" style="animation-duration: 300ms;">
+                  <span class="dropdown-header">Help</span>
+                  <a class="dropdown-item" href="#">
+                    <i class="tio-book-outlined dropdown-item-icon"></i>
+                    <span class="text-truncate pr-2" title="Resources &amp; tutorials">Resources &amp; tutorials</span>
+                  </a>
+                  <a class="dropdown-item" href="#">
+                    <i class="tio-command-key dropdown-item-icon"></i>
+                    <span class="text-truncate pr-2" title="Keyboard shortcuts">Keyboard shortcuts</span>
+                  </a>
+                  <a class="dropdown-item" href="#">
+                    <i class="tio-alt dropdown-item-icon"></i>
+                    <span class="text-truncate pr-2" title="Connect other apps">Connect other apps</span>
+                  </a>
+                  <a class="dropdown-item" href="#">
+                    <i class="tio-gift dropdown-item-icon"></i>
+                    <span class="text-truncate pr-2" title="What's new?">What's new?</span>
+                  </a>
+                  <div class="dropdown-divider"></div>
+                  <span class="dropdown-header">Contacts</span>
+                  <a class="dropdown-item" href="#">
+                    <i class="tio-chat-outlined dropdown-item-icon"></i>
+                    <span class="text-truncate pr-2" title="Contact support">Contact support</span>
+                  </a>
+                </div>
+              </div>
+              <!-- End Other Links -->
+            </li>
+  
+            <li class="navbar-vertical-footer-list-item">
+              <!-- Language -->
+              <div class="hs-unfold">
+                <a class="js-hs-unfold-invoker btn btn-icon btn-ghost-secondary rounded-circle" href="javascript:;" data-hs-unfold-options="{
+                    &quot;target&quot;: &quot;#languageDropdown&quot;,
+                    &quot;type&quot;: &quot;css-animation&quot;,
+                    &quot;animationIn&quot;: &quot;slideInDown&quot;,
+                    &quot;hideOnScroll&quot;: true
+                   }" data-hs-unfold-target="#languageDropdown" data-hs-unfold-invoker="">
+                  <img class="avatar avatar-xss avatar-circle" src="{% static 'beam/assets/vendor/flag-icon-css/flags/1x1/us.svg' %}" alt="United States Flag">
+                </a>
+  
+                <div id="languageDropdown" class="hs-unfold-content dropdown-unfold dropdown-menu navbar-vertical-footer-dropdown hs-unfold-content-initialized hs-unfold-css-animation animated hs-unfold-reverse-y hs-unfold-hidden" data-hs-target-height="257" data-hs-unfold-content="" data-hs-unfold-content-animation-in="slideInDown" data-hs-unfold-content-animation-out="fadeOut" style="animation-duration: 300ms;">
+                  <span class="dropdown-header">Select language</span>
+                  <a class="dropdown-item" href="#">
+                    <img class="avatar avatar-xss avatar-circle mr-2" src="{% static 'beam/assets/vendor/flag-icon-css/flags/1x1/us.svg' %}" alt="Flag">
+                    <span class="text-truncate pr-2" title="English">English (US)</span>
+                  </a>
+                  <a class="dropdown-item" href="#">
+                    <img class="avatar avatar-xss avatar-circle mr-2" src="{% static 'beam/assets/vendor/flag-icon-css/flags/1x1/it.svg' %}" alt="Flag">
+                    <span class="text-truncate pr-2" title="Italiano">Italiano</span>
+                  </a>
+                </div>
+              </div>
+              <!-- End Language -->
+            </li>
+          </ul>
+        </div>
+        <!-- ========== END FOOTER ========== -->
+
+      </div>
+    </div>
+  </aside>
+  <!-- End Navbar Vertical -->
+
+  <main id="content" role="main" class="main splitted-content-main">
+    <!-- Fluid Content -->
+    <div class="splitted-content-fluid content-space container-fluid d-flex flex-column navbar-light">
+      <!-- Toggle -->
+      <div class="d-flex justify-content-end mt-3 mr-3">
+        <!-- Navbar Vertical Toggle -->
+        <button type="button" class="js-navbar-vertical-aside-toggle-invoker navbar-vertical-aside-toggle btn btn-icon btn-sm btn-ghost-secondary">
+          <i class="tio-first-page navbar-vertical-aside-toggle-short-align" data-toggle="tooltip" data-placement="right" title="Collapse"></i>
+          <i class="tio-last-page navbar-vertical-aside-toggle-full-align" data-toggle="tooltip" data-placement="right" title="Expand"></i>
+        </button>
+        <!-- End Navbar Vertical Toggle -->
+      </div>
+      <!-- End Toggle -->
+
+      <!-- Three JS canvas -->
+      <div id="threejs-container">
+        <canvas></canvas>
+      </div>
+      <!-- End Three JS canvas -->
+      {% block pagetables %} {% endblock pagetables %}
+
+      <!-- <div id="table-container">
+        <div class="row h-100">
+          <div class="col-lg-4 mb-3 mb-lg-4 h-100">
+            <div class="card h-100">
+              <div class="card-header">
+                <h5 class="card-header-title">Import data into Front Dashboard</h5>
+
+                <div class="hs-unfold">
+                  <a class="js-hs-unfold-invoker btn btn-icon btn-sm btn-ghost-secondary rounded-circle" href="javascript:;"
+                    data-hs-unfold-options='{
+                      "target": "#reportsOverviewDropdown2",
+                      "type": "css-animation"
+                    }'>
+                    <i class="tio-more-vertical"></i>
+                  </a>
+
+                  <div id="reportsOverviewDropdown2" class="hs-unfold-content dropdown-unfold dropdown-menu dropdown-menu-right mt-1">
+                    <span class="dropdown-header">Settings</span>
+
+                    <a class="dropdown-item" href="#">
+                      <i class="tio-share dropdown-item-icon"></i> Share chart
+                    </a>
+                    <a class="dropdown-item" href="#">
+                      <i class="tio-download-to dropdown-item-icon"></i> Download
+                    </a>
+                    <a class="dropdown-item" href="#">
+                      <i class="tio-alt dropdown-item-icon"></i> Connect other apps
+                    </a>
+
+                    <div class="dropdown-divider"></div>
+
+                    <span class="dropdown-header">Feedback</span>
+
+                    <a class="dropdown-item" href="#">
+                      <i class="tio-chat-outlined dropdown-item-icon"></i> Report
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card-body">
+                <p>See and talk to your users and leads immediately by importing your data into the Front Dashboard platform.</p>
+
+                <ul class="list-group list-group-flush list-group-no-gutters">
+                  <li class="list-group-item py-3">
+                    <h5 class="modal-title">Import users from:</h5>
+                  </li>
+
+                  <li class="list-group-item py-3">
+                    <div class="media">
+                      <div class="mt-1 mr-3">
+                        <img class="avatar avatar-xs avatar-4by3" src="{% static 'beam/assets/svg/brands/capsule.svg" alt="Image Description">
+                      </div>
+                      <div class="media-body">
+                        <div class="row align-items-center">
+                          <div class="col">
+                            <h5 class="mb-0">Capsule</h5>
+                            <span class="d-block font-size-sm">Users</span>
+                          </div>
+
+                          <div class="col-auto">
+                            <a class="btn btn-sm btn-primary" href="#" title="Launch importer" target="_blank">
+                              Launch <span class="d-none d-sm-inline-block">importer</span>
+                              <i class="tio-open-in-new ml-1"></i>
+                            </a>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </li>
+
+                  <li class="list-group-item py-3">
+                    <div class="media">
+                      <div class="mt-1 mr-3">
+                        <img class="avatar avatar-xs avatar-4by3" src="{% static 'beam/assets/svg/brands/mailchimp.svg" alt="Image Description">
+                      </div>
+                      <div class="media-body">
+                        <div class="row align-items-center">
+                          <div class="col">
+                            <h5 class="mb-0">Mailchimp</h5>
+                            <span class="d-block font-size-sm">Users</span>
+                          </div>
+
+                          <div class="col-auto">
+                            <a class="btn btn-sm btn-primary" href="#" title="Launch importer" target="_blank">
+                              Launch <span class="d-none d-sm-inline-block">importer</span>
+                              <i class="tio-open-in-new ml-1"></i>
+                            </a>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </li>
+
+                  <li class="list-group-item py-3">
+                    <div class="media">
+                      <div class="mt-1 mr-3">
+                        <img class="avatar avatar-xs avatar-4by3" src="{% static 'beam/assets/svg/brands/google-webdev.svg" alt="Image Description">
+                      </div>
+                      <div class="media-body">
+                        <div class="row align-items-center">
+                          <div class="col">
+                            <h5 class="mb-0">Webdev</h5>
+                            <span class="d-block font-size-sm">Users</span>
+                          </div>
+
+                          <div class="col-auto">
+                            <a class="btn btn-sm btn-primary" href="#" title="Launch importer" target="_blank">
+                              Launch <span class="d-none d-sm-inline-block">importer</span>
+                              <i class="tio-open-in-new ml-1"></i>
+                            </a>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </li>
+
+                  <li class="list-group-item"><small>Or you can <a href="#">sync data to Front Dashboard</a> to ensure your data is always up-to-date.</small></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-lg-8 mb-3 mb-lg-8 h-100">
+            
+
+            <div class="card h-100">
+
+              <div class="card-header nopadding">
+                <h5 class="card-header-title">Monthly expenses</h5>
+
+
+                <ul class="nav nav-segment" id="expensesTab" role="tablist">
+                  <li class="nav-item" data-toggle="chart-bar" data-datasets="thisWeek" data-trigger="click" data-action="toggle">
+                    <a class="nav-link active" href="javascript:;" data-toggle="tab">Point Loads</a>
+                  </li>
+                  <li class="nav-item" data-toggle="chart-bar" data-datasets="lastWeek" data-trigger="click" data-action="toggle">
+                    <a class="nav-link" href="javascript:;" data-toggle="tab">Distributed Loads</a>
+                  </li>
+                  <li class="nav-item" data-toggle="chart-bar" data-datasets="lastWeek" data-trigger="click" data-action="toggle">
+                    <a class="nav-link" href="javascript:;" data-toggle="tab">Point Moments</a>
+                  </li>
+                </ul>
+
+              </div>
+
+
+
+              <div class="card-body" style="overflow-y:auto;">
+                  <div class="col-12 nopadding">
+                    <div class="table">
+                      <div class="row">
+                        <div class="col-sm-12 h-100">
+                          <table id="order-listing" class="table table-bordered table-striped w-auto dataTable no-footer" role="grid" aria-describedby="order-listing_info">
+                            <thead>
+                              <tr role="row">
+                                <th class="sorting_asc" tabindex="0" aria-controls="order-listing" rowspan="1" colspan="1" aria-sort="ascending" aria-label="Order #: activate to sort column descending" style="width: 89.35px;">Label</th>
+                                <th class="sorting" tabindex="0" aria-controls="order-listing" rowspan="1" colspan="1" aria-label="Purchased On: activate to sort column ascending" style="width: 145.75px;">Start Magnitude</th>
+                                <th class="sorting" tabindex="0" aria-controls="order-listing" rowspan="1" colspan="1" aria-label="Customer: activate to sort column ascending" style="width: 107.225px;">End Magnitude</th>
+                                <th class="sorting" tabindex="0" aria-controls="order-listing" rowspan="1" colspan="1" aria-label="Ship to: activate to sort column ascending" style="width: 92.275px;">Start Location</th>
+                                <th class="sorting" tabindex="0" aria-controls="order-listing" rowspan="1" colspan="1" aria-label="Base Price: activate to sort column ascending" style="width: 113.7px;">End Location</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr>
+                                <td class="sorting_1">1</td>
+                                <td>2012/08/03</td>
+                                <td>Edinburgh</td>
+                                <td>New York</td>
+                                <td>$1500</td>
+                              </tr>
+                              <tr>
+                                <td class="sorting_1">2</td>
+                                <td>2015/04/01</td>
+                                <td>Doe</td>
+                                <td>Brazil</td>
+                                <td>
+                                  <label class="badge badge-danger">Pending</label>
+                                </td>
+                              </tr>
+                              <tr>
+                                <td class="sorting_1">3</td>
+                                <td>2010/11/21</td>
+                                <td>Sam</td>
+                                <td>Tokyo</td>
+                                <td>
+                                  <button class="btn btn-outline-primary">View</button>
+                                </td>
+                              </tr>
+                              <tr>
+                                <td class="sorting_1">2</td>
+                                <td>2015/04/01</td>
+                                <td>Doe</td>
+                                <td>Brazil</td>
+                                <td>
+                                  <label class="badge badge-sucess">Pending</label>
+                                </td>
+                              </tr>
+                              <tr class="odd">
+                                <td class="sorting_1">2</td>
+                                <td>2015/04/01</td>
+                                <td>Doe</td>
+                                <td>Brazil</td>
+                                <td>
+                                  <label class="badge badge-info">Pending</label>
+                                </td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+      </div> -->
+    </div>
+    <!-- End Fluid Content -->
+  </main>
+  <!-- ========== END MAIN CONTENT ========== -->
+
+
+  <div id="styleSwitcherDropdown" class="hs-unfold-content sidebar sidebar-bordered sidebar-box-shadow" style="width: 35rem;">
+    <div class="card card-lg border-0 h-100">
+      <div class="card-header align-items-start">
+        <div class="mr-2">
+          <h3 class="card-header-title">Front Builder</h3>
+          <p>Customize your overview page layout. Choose the one that best fits your needs.</p>
+        </div>
+
+        <!-- Toggle Button -->
+        <a class="js-hs-unfold-invoker btn btn-icon btn-xs btn-ghost-dark" href="javascript:;"
+           data-hs-unfold-options='{
+              "target": "#styleSwitcherDropdown",
+              "type": "css-animation",
+              "animationIn": "fadeInRight",
+              "animationOut": "fadeOutRight",
+              "hasOverlay": true,
+              "smartPositionOff": true
+             }'>
+          <i class="tio-clear tio-lg"></i>
+        </a>
+        <!-- End Toggle Button -->
+      </div>
+
+      <!-- Body -->
+      <div class="card-body sidebar-scrollbar">
+        <h4 class="mb-1">Layout skins <span id="js-builder-disabled" class="badge badge-soft-danger" style="opacity: 0">Disabled</span></h4>
+        <p>3 kinds of layout skins to choose from.</p>
+
+        <div class="row gx-2 mb-5">
+          <!-- Custom Radio -->
+          <div class="col-4 text-center">
+            <div class="text-center">
+              <div class="custom-checkbox-card mb-2">
+                <input type="radio" class="custom-checkbox-card-input" name="layoutSkinsRadio" id="layoutSkinsRadio1" checked value="default">
+                <label class="custom-checkbox-card-label" for="layoutSkinsRadio1">
+                  <img class="custom-checkbox-card-img" src="{% static 'beam/assets/svg/layouts/layouts-sidebar-default.svg' %}" alt="Image Description">
+                </label>
+                <span class="custom-checkbox-card-text">Default</span>
+              </div>
+            </div>
+          </div>
+          <!-- End Custom Radio -->
+
+          <!-- Custom Radio -->
+          <div class="col-4 text-center">
+            <div class="text-center">
+              <div class="custom-checkbox-card mb-2">
+                <input type="radio" class="custom-checkbox-card-input" name="layoutSkinsRadio" id="layoutSkinsRadio2" value="navbar-dark">
+                <label class="custom-checkbox-card-label" for="layoutSkinsRadio2">
+                  <img class="custom-checkbox-card-img" src="{% static 'beam/assets/svg/layouts/layouts-sidebar-dark.svg' %}" alt="Image Description">
+                </label>
+                <span class="custom-checkbox-card-text">Dark</span>
+              </div>
+            </div>
+          </div>
+          <!-- End Custom Radio -->
+
+          <!-- Custom Radio -->
+          <div class="col-4 text-center">
+            <div class="text-center">
+              <div class="custom-checkbox-card mb-2">
+                <input type="radio" class="custom-checkbox-card-input" name="layoutSkinsRadio" id="layoutSkinsRadio3"  value="navbar-light">
+                <label class="custom-checkbox-card-label" for="layoutSkinsRadio3">
+                  <img class="custom-checkbox-card-img" src="{% static 'beam/assets/svg/layouts/layouts-sidebar-light.svg' %}" alt="Image Description">
+                </label>
+                <span class="custom-checkbox-card-text">Light</span>
+              </div>
+            </div>
+          </div>
+          <!-- End Custom Radio -->
+        </div>
+        <!-- End Row -->
+
+        <h4 class="mb-1">Sidebar layout options</h4>
+        <p>Choose between standard navigation sizing, mini or even compact with icons.</p>
+
+        <div class="row gx-2 mb-5">
+          <!-- Custom Radio -->
+          <div class="col-4 text-center">
+            <div class="text-center">
+              <div class="custom-checkbox-card mb-2">
+                <input type="radio" class="custom-checkbox-card-input" name="sidebarLayoutOptions" id="sidebarLayoutOptions1" checked value="default">
+                <label class="custom-checkbox-card-label" for="sidebarLayoutOptions1">
+                  <img class="custom-checkbox-card-img" src="{% static 'beam/assets/svg/layouts/sidebar-default-classic.svg' %}" alt="Image Description">
+                </label>
+                <span class="custom-checkbox-card-text">Default</span>
+              </div>
+            </div>
+          </div>
+          <!-- End Custom Radio -->
+
+          <!-- Custom Radio -->
+          <div class="col-4 text-center">
+            <div class="text-center">
+              <div class="custom-checkbox-card mb-2">
+                <input type="radio" class="custom-checkbox-card-input" name="sidebarLayoutOptions" id="sidebarLayoutOptions2" value="navbar-vertical-aside-compact-mode">
+                <label class="custom-checkbox-card-label" for="sidebarLayoutOptions2">
+                  <img class="custom-checkbox-card-img" src="{% static 'beam/assets/svg/layouts/sidebar-compact.svg' %}" alt="Image Description">
+                </label>
+                <span class="custom-checkbox-card-text">Compact</span>
+              </div>
+            </div>
+          </div>
+          <!-- End Custom Radio -->
+
+          <!-- Custom Radio -->
+          <div class="col-4 text-center">
+            <div class="text-center">
+              <div class="custom-checkbox-card mb-2">
+                <input type="radio" class="custom-checkbox-card-input" name="sidebarLayoutOptions" id="sidebarLayoutOptions3" value="navbar-vertical-aside-mini-mode">
+                <label class="custom-checkbox-card-label" for="sidebarLayoutOptions3">
+                  <img class="custom-checkbox-card-img" src="{% static 'beam/assets/svg/layouts/sidebar-mini.svg' %}" alt="Image Description">
+                </label>
+                <span class="custom-checkbox-card-text">Mini</span>
+              </div>
+            </div>
+          </div>
+          <!-- End Custom Radio -->
+        </div>
+        <!-- End Row -->
+
+        <h4 class="mb-1">Header layout options</h4>
+        <p>Choose the primary navigation of your header layout.</p>
+
+        <div class="row gx-2">
+          <!-- Custom Radio -->
+          <div class="col-4 text-center">
+            <div class="text-center">
+              <div class="custom-checkbox-card mb-2">
+                <input type="radio" class="custom-checkbox-card-input" name="headerLayoutOptions" id="headerLayoutOptions1" value="single">
+                <label class="custom-checkbox-card-label" for="headerLayoutOptions1">
+                  <img class="custom-checkbox-card-img" src="{% static 'beam/assets/svg/layouts/header-default-fluid.svg' %}" alt="Image Description">
+                </label>
+                <span class="custom-checkbox-card-text">Default (Fluid)</span>
+              </div>
+            </div>
+          </div>
+          <!-- End Custom Radio -->
+
+          <!-- Custom Radio -->
+          <div class="col-4 text-center">
+            <div class="text-center">
+              <div class="custom-checkbox-card mb-2">
+                <input type="radio" class="custom-checkbox-card-input" name="headerLayoutOptions" id="headerLayoutOptions2" value="single-container">
+                <label class="custom-checkbox-card-label" for="headerLayoutOptions2">
+                  <img class="custom-checkbox-card-img" src="{% static 'beam/assets/svg/layouts/header-default-container.svg' %}" alt="Image Description">
+                </label>
+                <span class="custom-checkbox-card-text">Default (Container)</span>
+              </div>
+            </div>
+          </div>
+          <!-- End Custom Radio -->
+
+          <!-- Custom Radio -->
+          <div class="col-4 text-center">
+            <div class="text-center">
+              <div class="custom-checkbox-card mb-2">
+                <input type="radio" class="custom-checkbox-card-input" name="headerLayoutOptions" id="headerLayoutOptions3" value="double">
+                <label class="custom-checkbox-card-label" for="headerLayoutOptions3">
+                  <img class="custom-checkbox-card-img" src="{% static 'beam/assets/svg/layouts/header-double-line-fluid.svg' %}" alt="Image Description">
+                </label>
+                <span class="custom-checkbox-card-text">Double line (Fluid)</span>
+              </div>
+            </div>
+          </div>
+          <!-- End Custom Radio -->
+
+          <!-- Custom Radio -->
+          <div class="col-4 text-center mt-2">
+            <div class="text-center">
+              <div class="custom-checkbox-card mb-2">
+                <input type="radio" class="custom-checkbox-card-input" name="headerLayoutOptions" id="headerLayoutOptions4" value="double-container">
+                <label class="custom-checkbox-card-label" for="headerLayoutOptions4">
+                  <img class="custom-checkbox-card-img" src="{% static 'beam/assets/svg/layouts/header-double-line-container.svg' %}" alt="Image Description">
+                </label>
+                <span class="custom-checkbox-card-text">Double line (Container)</span>
+              </div>
+            </div>
+          </div>
+          <!-- End Custom Radio -->
+        </div>
+        <!-- End Row -->
+      </div>
+      <!-- End Body -->
+
+      <!-- Footer -->
+      <div class="card-footer">
+        <div class="row gx-2">
+          <div class="col">
+            <button type="button" id="js-builder-reset" class="btn btn-block btn-lg btn-white">
+              <i class="tio-restore"></i> Reset
+            </button>
+          </div>
+          <div class="col">
+            <button type="button" id="js-builder-preview" class="btn btn-block btn-lg btn-primary">
+              <i class="tio-visible"></i> Preview
+            </button>
+          </div>
+        </div>
+        <!-- End Row -->
+      </div>
+      <!-- End Footer -->
+    </div>
+  </div>
+  <!-- End Builder -->
+
+  <!-- Builder Toggle -->
+  <div class="d-none d-md-block position-fixed bottom-0 right-0 mr-5 mb-10" style="z-index: 3;">
+    <div style="position: fixed; top: 50%; right: 0; margin-right: -.25rem; transform: translateY(-50%); writing-mode: vertical-rl; text-orientation: sideways;">
+      <div class="hs-unfold">
+        <a id="builderPopover" class="js-hs-unfold-invoker btn btn-sm btn-soft-dark py-3" href="javascript:;" data-template='<div class="d-none d-md-block popover" role="tooltip"><div class="arrow"></div><h3 class="popover-header"></h3><div class="popover-body"></div></div>' data-toggle="popover" data-placement="left" title="<div class='d-flex align-items-center'>Front Builder <a href='#!' class='close close-light ml-auto'><i id='closeBuilderPopover' class='tio-clear'></i></a></div>" data-content="Customize your overview page layout. Choose the one that best fits your needs." data-html="true"
+           data-hs-unfold-options='{
+            "target": "#styleSwitcherDropdown",
+            "type": "css-animation",
+            "animationIn": "fadeInRight",
+            "animationOut": "fadeOutRight",
+            "hasOverlay": true,
+            "smartPositionOff": true
+           }'>
+          <i class="tio-tune mr-2"></i>
+          <span class="font-weight-bold text-uppercase">Builder</span>
+        </a>
+      </div>
+    </div>
+  </div>
+  <!-- End Builder Toggle -->
+
+  {% block threejs %} {% endblock threejs %}
+
+  {% block externalScripts %} {% endblock externalScripts %}
+
+  <!-- JS Implementing Plugins -->
+  <!-- when turned off, the dropdowns on the sidebar no longer function -->
+  <script src="{% static 'beam/assets/js/vendor.min.js' %}"></script>
+
+  <!-- JS Front -->
+  <!-- <script src="{% static 'beam/assets/js/theme.min.js' %}"></script> -->
+
+  <!-- JS Plugins Init. -->
+  <!-- when turned off, the dropdowns on the sidebar no longer function -->
+  <script>
+    $(document).on('ready', function () {
+      // INITIALIZATION OF NAVBAR VERTICAL NAVIGATION
+      // =======================================================
+      var sidebar = $('.js-navbar-vertical-aside').hsSideNav();
+
+      $('.js-navbar-vertical-aside-toggle-invoker').click(function () {
+        $('.js-navbar-vertical-aside-toggle-invoker i').tooltip('hide');
+      });
+
+
+      // INITIALIZATION OF UNFOLD
+      // =======================================================
+      $('.js-hs-unfold-invoker').each(function () {
+        var unfold = new HSUnfold($(this)).init();
+      });
+
+
+      // INITIALIZATION OF FORM SEARCH
+      // =======================================================
+      $('.js-form-search').each(function () {
+        new HSFormSearch($(this)).init()
+      });
+    });
+  </script>
+
+  <!-- IE Support -->
+  <script>
+    if (/MSIE \d|Trident.*rv:/.test(navigator.userAgent)) document.write('<script src="{% static 'beam/assets/vendor/babel-polyfill/polyfill.min.js' %}"><\/script>');
+  </script>
+</body>
+</html>
