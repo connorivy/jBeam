@@ -200,9 +200,11 @@
                             </tr>
                           {% endfor %}
                           <tr>
-                            <td class="sorting_1 nopadding">{{ form.index|as_crispy_field }}</td>
-                            <td class="nopadding">{{ form.magnitude|as_crispy_field }}</td>
-                            <td class="nopadding">{{ form.location|as_crispy_field }}</td>
+                            <!-- <form id="new-point-load" method="POST">{% csrf_token %} -->
+                              <td class="sorting_1 nopadding">{{ form.index|as_crispy_field }}</td>
+                              <td class="nopadding">{{ form.magnitude|as_crispy_field }}</td>
+                              <td class="nopadding">{{ form.location|as_crispy_field }}</td>
+                            <!-- </form> -->
                           </tr>
                           <tr>
                             <td class="sorting_1">1</td>

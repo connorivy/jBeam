@@ -11,13 +11,18 @@ def update_point_load(request):
         index = request.POST.get("index", None)
 
         # check for the point load in the database.
-        point_load = pointLoad.objects.get(index = index)
-        user_beam = jBeamObject.objects.first()
-
+        print('getting point load')
         try:
+            point_load = pointLoad.objects.get(index = index)
             point_load.magnitude = request.POST.get("magnitude", None)
             point_load.location = request.POST.get("location", None)
             point_load.save()
+        except:
+            point_load = pointLoad.objects.create(index=index, magnitude=request.POST.get("magnitude", None), location=request.POST.get("location", None))
+        print('point load', point_load)
+
+        try:
+            user_beam = jBeamObject.objects.first()
             user_beam.L = request.POST.get("L", None)
             user_beam.save()
         except:

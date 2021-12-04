@@ -669,7 +669,56 @@
         }
 
         beam.drawLoad(load)
-        console.log(e, e.target.value)
+        // GET AJAX request
+        $.ajax({
+            type: 'POST',
+            url: "{% url 'update_point_load' %}",
+            data: {
+                "magnitude": load.magnitude,
+                'location': load.startLocation,
+                'index': load.index,
+                'L': beam.L,
+            },
+            success: function (response) {
+
+            },
+            error: function (response) {
+            }
+        })
+
+    });
+
+    $("#form-location").focusout(function (e) {
+        if ($("#form-magnitude").val() == '') {
+            console.log('no mag')
+            return
+        } else if (e.target.value == '') {
+            console.log('no loc')
+            return
+        }
+
+        beam.defineLoad($("#form-magnitude").val(), e.target.value)
+
+        var load = beam.PLs.at(-1);
+        beam.drawLoad(load)
+        
+        // GET AJAX request
+        $.ajax({
+            type: 'POST',
+            url: "{% url 'update_point_load' %}",
+            data: {
+                "magnitude": load.magnitude,
+                'location': load.startLocation,
+                'index': load.index,
+                'L': beam.L,
+            },
+            success: function (response) {
+                console.log(response)
+            },
+            error: function (response) {
+                console.log('error')
+            }
+        })
     });
 
     $("#sidebar").mouseleave(function (e) {
