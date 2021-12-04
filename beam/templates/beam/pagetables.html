@@ -175,7 +175,7 @@
                 <div class="table">
                   <div class="row">
                     <div class="col-sm-12 h-100">
-                      <table id="order-listing" class="table table-bordered table-striped w-auto dataTable no-footer" role="grid" aria-describedby="order-listing_info">
+                      <table id="load-table" class="table table-bordered table-striped w-auto dataTable no-footer" role="grid" aria-describedby="order-listing_info">
                         <thead>
                           <tr role="row">
                             <th class="sorting_asc" tabindex="0" aria-controls="order-listing" rowspan="1" colspan="1" aria-sort="ascending" aria-label="Order #: activate to sort column descending" style="width: 89.35px;">Label</th>
@@ -201,9 +201,15 @@
                           {% endfor %}
                           <tr>
                             <!-- <form id="new-point-load" method="POST">{% csrf_token %} -->
-                              <td class="sorting_1 nopadding">{{ form.index|as_crispy_field }}</td>
-                              <td class="nopadding">{{ form.magnitude|as_crispy_field }}</td>
-                              <td class="nopadding">{{ form.location|as_crispy_field }}</td>
+                              <td class="sorting_1 nopadding">
+                                <input type="number" name="magnitude" class="form-control form-control-sm bg-transparent border-transparent numberinput" id="form-index" step="any" required="">
+                              </td>
+                              <td class="nopadding">
+                                <input type="number" name="magnitude" class="form-control form-control-sm bg-transparent border-transparent numberinput" id="form-magnitude" step="any" required="">
+                              </td>
+                              <td class="nopadding">
+                                <input type="number" name="magnitude" class="form-control form-control-sm bg-transparent border-transparent numberinput" id="form-location" step="any" required="">
+                              </td>
                             <!-- </form> -->
                           </tr>
                           <tr>

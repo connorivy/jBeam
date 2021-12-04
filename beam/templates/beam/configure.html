@@ -714,6 +714,21 @@
             },
             success: function (response) {
                 console.log(response)
+                var newrow = $(`<tr>
+                                    <td class="sorting_1 nopadding">
+                                        <input id="Point-Index-` + load.index + `" class="form-control form-control-sm bg-transparent border-transparent load-table-input numberinput" value= ` + load.index + ` onfocus="this.select();">
+                                    </td>
+                                    <td class="nopadding">
+                                        <input id="Point-Magnitude-` + load.index + `" class="form-control form-control-sm bg-transparent border-transparent load-table-input numberinput" value= ` + load.magnitude + ` onfocus="this.select();">
+                                    </td>
+                                    <td class="nopadding">
+                                        <input id="Point-Location-` + load.index + `" class="form-control form-control-sm bg-transparent border-transparent load-table-input numberinput" value= ` + load.startLocation + ` onfocus="this.select();">
+                                    </td>
+                                </tr>`);
+                newrow.insertBefore(e.target.closest('tr'));
+                $("#form-index").val('');
+                $('#form-magnitude').val('')
+                $('#form-location').val('')
             },
             error: function (response) {
                 console.log('error')
