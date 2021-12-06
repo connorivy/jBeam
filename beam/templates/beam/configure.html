@@ -153,16 +153,18 @@
             var coneGeo = [];
             var numArrows = 0;
             var multiplier = 0;
-            const canvas = renderer.domElement;
+            const canvas = renderer.domElement; 
             const width = canvas.clientWidth;
             var widthLoad = 0;
 
             load.startLocationOnCanvas = load.startLocation / this.L * 200 - 100;
             load.endLocationOnCanvas = load.endLocation / this.L * 200 - 100;
 
-            if (load.endLocationOnCanvas) {
+            if (load.endLocation) {
                 widthLoad = Math.abs(load.endLocationOnCanvas - load.startLocationOnCanvas);
                 numArrows = Math.floor(width / (widthLoad * 1.8)) - 1;
+
+                console.log(numArrows)
 
                 if (load.isMaxDL) {
                     set_max_dist_load(this);
@@ -350,6 +352,11 @@
         {% for pl in point_loads %}
         beam.defineLoad({{ pl.magnitude }}, {{ pl.location}})
         beam.drawLoad(beam.PLs.at(-1))
+        {% endfor %}
+
+        {% for dl in distributed_loads %}
+        beam.defineLoad({{ dl.startMagnitude }}, {{ dl.startLocation}}, {{ dl.endLocation }})
+        beam.drawLoad(beam.DLs.at(-1))
         {% endfor %}
         
         
@@ -727,8 +734,9 @@
                                 </tr>`);
                 newrow.insertBefore(e.target.closest('tr'));
                 $("#form-index").val('');
-                $('#form-magnitude').val('')
-                $('#form-location').val('')
+                $('#form-magnitude').val('');
+                $('#form-magnitude').focus();
+                $('#form-location').val('');
             },
             error: function (response) {
                 console.log('error')

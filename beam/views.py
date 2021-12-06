@@ -16,6 +16,7 @@ def configure(request):
     context = {
         'form': form,
         'point_loads': pointLoad.objects.all(),
+        'distributed_loads': distributedLoad.objects.all(),
     }
     return render(request, 'beam/pagetables.html', context)
 

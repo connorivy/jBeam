@@ -36,11 +36,18 @@ def get_diagrams(request):
         # # get beam from client side
         # beam = request.GET.get("beam", None)
         point_loads = pointLoad.objects.all()
+        distributed_loads = distributedLoad.objects.all()
         user_beam = jBeamObject.objects.first()
 
         calc_beam = beam(user_beam.L, x0 = 0)
         for pl in point_loads:
             calc_beam.add_point_load(pl.location, pl.magnitude)
+
+        
+        for dl in distributed_loads:
+            m = (float(dl.endMagnitude) - float(dl.startMagnitude)) / (float(dl.endLocation) - float(dl.startLocation))
+            b = float(dl.startMagnitude) - m * float(dl.startLocation)
+            calc_beam.add_distributed_load(dl.startLocation, dl.endLocation, f'{m}*x + {b}')
 
         calc_beam.add_support(0, "roller")
         calc_beam.add_support(user_beam.L, "pin")
