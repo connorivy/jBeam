@@ -11,24 +11,57 @@ def update_point_load(request):
         index = request.POST.get("index", None)
 
         # check for the point load in the database.
-        print('getting point load')
         try:
-            point_load = pointLoad.objects.get(index = index)
-            point_load.magnitude = request.POST.get("magnitude", None)
-            point_load.location = request.POST.get("location", None)
-            point_load.save()
+            load_type = request.POST.get('loadType')
         except:
-            point_load = pointLoad.objects.create(index=index, magnitude=request.POST.get("magnitude", None), location=request.POST.get("location", None))
-        print('point load', point_load)
+            print('Could not retrieve load type')
+            return
+
+        if load_type == 'point':
+            try:
+                point_load = pointLoad.objects.get(index = index)
+                point_load.startMagnitude = request.POST.get("startMagnitude", None)
+                point_load.startLocation = request.POST.get("startLocation", None)
+                point_load.save()
+                json_response = {
+                    "startMagnitude":point_load.startMagnitude,
+                    "startLocation":point_load.startLocation, 
+                }
+            except:
+                point_load = pointLoad.objects.create(index=index, startMagnitude=request.POST.get("startMagnitude", None), startLocation=request.POST.get("startLocation", None))
+
+        elif load_type == 'distributed':
+            try:
+                distributed_load = distributedLoad.objects.get(index = index)
+                distributed_load.startMagnitude = request.POST.get("startMagnitude", None)
+                distributed_load.startLocation = request.POST.get("startLocation", None)
+                distributed_load.endMagnitude = request.POST.get("endMagnitude", None)
+                distributed_load.endLocation = request.POST.get("endLocation", None)
+                distributed_load.save()
+                json_response = {
+                    "startMagnitude":distributed_load.startMagnitude,
+                    "startLocation":distributed_load.startLocation,
+                    "endMagnitude":distributed_load.endMagnitude,
+                    "endLocation":distributed_load.endLocation, 
+                }
+            except:
+                json_response = {
+                    "startMagnitude":distributed_load.startMagnitude,
+                    "startLocation":distributed_load.startLocation,
+                    "endMagnitude":distributed_load.endMagnitude,
+                    "endLocation":distributed_load.endLocation, 
+                }
+                print(json_response)
+                # distributed_load = distributedLoad.objects.create(index=index, startMagnitude=request.POST.get("startMagnitude", None), startLocation=request.POST.get("startLocation", None), endMagnitude=request.POST.get("endMagnitude", None), endLocation=request.POST.get("endLocation", None))
 
         try:
             user_beam = jBeamObject.objects.first()
             user_beam.L = request.POST.get("L", None)
             user_beam.save()
         except:
-            location = ''
-            magnitude = ''
-        return JsonResponse({"magnitude":point_load.magnitude,"location":point_load.location, 'L':user_beam.L}, status = 200)
+            startLocation = ''
+            startMagnitude = ''
+        return JsonResponse(json_response, status = 200)
     return JsonResponse({}, status = 400)
 
 def get_diagrams(request):
@@ -41,7 +74,7 @@ def get_diagrams(request):
 
         calc_beam = beam(user_beam.L, x0 = 0)
         for pl in point_loads:
-            calc_beam.add_point_load(pl.location, pl.magnitude)
+            calc_beam.add_point_load(pl.startLocation, pl.startMagnitude)
 
         
         for dl in distributed_loads:

@@ -62,7 +62,7 @@
               <li class="list-group-item py-3">
                 <div class="media">
                   <div class="mt-1 mr-3">
-                    <img class="avatar avatar-xs avatar-4by3" src="{% static 'beam/assets/svg/brands/capsule.svg" alt="Image Description">
+                    <img class="avatar avatar-xs avatar-4by3" alt="Image Description">
                   </div>
                   <div class="media-body">
                     <div class="row align-items-center">
@@ -88,7 +88,7 @@
               <li class="list-group-item py-3">
                 <div class="media">
                   <div class="mt-1 mr-3">
-                    <img class="avatar avatar-xs avatar-4by3" src="{% static 'beam/assets/svg/brands/mailchimp.svg" alt="Image Description">
+                    <img class="avatar avatar-xs avatar-4by3" alt="Image Description">
                   </div>
                   <div class="media-body">
                     <div class="row align-items-center">
@@ -114,7 +114,7 @@
               <li class="list-group-item py-3">
                 <div class="media">
                   <div class="mt-1 mr-3">
-                    <img class="avatar avatar-xs avatar-4by3" src="{% static 'beam/assets/svg/brands/google-webdev.svg" alt="Image Description">
+                    <img class="avatar avatar-xs avatar-4by3" alt="Image Description">
                   </div>
                   <div class="media-body">
                     <div class="row align-items-center">
@@ -153,15 +153,15 @@
             <!-- <h5 class="card-header-title">Monthly expenses</h5> -->
 
             <!-- Nav -->
-            <ul class="nav nav-segment" id="expensesTab" role="tablist">
-              <li class="nav-item"data-trigger="click" data-action="toggle" onclick="showLoads(event, 'Point')">
-                <a class="nav-link active" href="javascript:;" data-toggle="tab">Point Loads</a>
+            <ul class="nav nav-segment" role="tablist">
+              <li class="nav-item"data-trigger="click" data-action="toggle" onclick="showLoads(event, 'card-body-point')">
+                <a class="nav-link tablinks active" href="javascript:;" data-toggle="tab">Point Loads</a>
+              </li>
+              <li class="nav-item" data-trigger="click" data-action="toggle" onclick="showLoads(event, 'card-body-distributed')">
+                <a class="nav-link tablinks" href="javascript:;" data-toggle="tab">Distributed Loads</a>
               </li>
               <li class="nav-item" data-trigger="click" data-action="toggle">
-                <a class="nav-link" href="javascript:;" data-toggle="tab">Distributed Loads</a>
-              </li>
-              <li class="nav-item" data-trigger="click" data-action="toggle">
-                <a class="nav-link" href="javascript:;" data-toggle="tab">Point Moments</a>
+                <a class="nav-link tablinks" href="javascript:;" data-toggle="tab">Point Moments</a>
               </li>
             </ul>
             <!-- End Nav -->
@@ -170,7 +170,7 @@
 
           <!-- Body -->
           <!-- Point Loads -->
-          <div class="card-body" style="overflow-y:auto;">
+          <div class="card-body tabcontent" id="card-body-point" style="overflow-y:auto;">
             <!-- <div class="row"> -->
               <div class="col-12 nopadding">
                 <div class="table">
@@ -180,81 +180,36 @@
                         <thead>
                           <tr role="row">
                             <th class="sorting_asc" tabindex="0" aria-controls="order-listing" rowspan="1" colspan="1" aria-sort="ascending" aria-label="Order #: activate to sort column descending" style="width: 89.35px;">Label</th>
-                            <th class="sorting" tabindex="0" aria-controls="order-listing" rowspan="1" colspan="1" aria-label="Purchased On: activate to sort column ascending" style="width: 145.75px;">Start Magnitude</th>
-                            <th class="sorting" tabindex="0" aria-controls="order-listing" rowspan="1" colspan="1" aria-label="Customer: activate to sort column ascending" style="width: 107.225px;">End Magnitude</th>
-                            <th class="sorting" tabindex="0" aria-controls="order-listing" rowspan="1" colspan="1" aria-label="Ship to: activate to sort column ascending" style="width: 92.275px;">Start Location</th>
-                            <th class="sorting" tabindex="0" aria-controls="order-listing" rowspan="1" colspan="1" aria-label="Base Price: activate to sort column ascending" style="width: 113.7px;">End Location</th>
+                            <th class="sorting" tabindex="0" aria-controls="order-listing" rowspan="1" colspan="1" aria-label="Purchased On: activate to sort column ascending" style="width: 145.75px;">Magnitude</th>
+                            <th class="sorting" tabindex="0" aria-controls="order-listing" rowspan="1" colspan="1" aria-label="Ship to: activate to sort column ascending" style="width: 92.275px;">Location</th>
                           </tr>
                         </thead>
                         <tbody>
                           {% for pl in point_loads %}
                             <tr>
                                 <td class="sorting_1 nopadding">
-                                  <input id="Point-Index-{{ pl.index }}" class="form-control form-control-sm bg-transparent border-transparent load-table-input numberinput" value= {{ pl.index }} onfocus="this.select();">
+                                  <input id="Point-Index-{{ pl.index }}" class="form-control form-control-sm bg-transparent border-transparent load-table-input numberinput" value= "{{ pl.index }}" onfocus="this.select();">
                                 </td>
                                 <td class="nopadding">
-                                  <input id="Point-Magnitude-{{ pl.index }}" class="form-control form-control-sm bg-transparent border-transparent load-table-input numberinput" value= {{ pl.magnitude }} onfocus="this.select();">
+                                  <input id="Point-startMagnitude-{{ pl.index }}" class="form-control form-control-sm bg-transparent border-transparent load-table-input numberinput" value= "{{ pl.startMagnitude }}" onfocus="this.select();">
                                 </td>
                                 <td class="nopadding">
-                                  <input id="Point-Location-{{ pl.index }}" class="form-control form-control-sm bg-transparent border-transparent load-table-input numberinput" value= {{ pl.location }} onfocus="this.select();">
+                                  <input id="Point-startLocation-{{ pl.index }}" class="form-control form-control-sm bg-transparent border-transparent load-table-input numberinput" value= "{{ pl.startLocation }}" onfocus="this.select();">
                                 </td>
                             </tr>
                           {% endfor %}
                           <tr>
                             <!-- <form id="new-point-load" method="POST">{% csrf_token %} -->
                               <td class="sorting_1 nopadding">
-                                <input type="number" name="magnitude" class="form-control form-control-sm bg-transparent border-transparent numberinput" id="form-index" step="any" required="">
+                                <input type="number" class="form-control form-control-sm bg-transparent border-transparent numberinput" id="form-index" step="any" required="">
                               </td>
                               <td class="nopadding">
-                                <input type="number" name="magnitude" class="form-control form-control-sm bg-transparent border-transparent numberinput" id="form-magnitude" step="any" required="">
+                                <input type="number" class="form-control form-control-sm bg-transparent border-transparent numberinput" id="form-startMagnitude" step="any" required="">
                               </td>
                               <td class="nopadding">
-                                <input type="number" name="magnitude" class="form-control form-control-sm bg-transparent border-transparent numberinput" id="form-location" step="any" required="">
+                                <input type="number" class="form-control form-control-sm bg-transparent border-transparent numberinput" id="form-startLocation" step="any" required="">
                               </td>
                             <!-- </form> -->
-                          </tr>
-                          <tr>
-                            <td class="sorting_1">1</td>
-                            <td>2012/08/03</td>
-                            <td>Edinburgh</td>
-                            <td>New York</td>
-                            <td>$1500</td>
-                          </tr>
-                          <tr>
-                            <td class="sorting_1">2</td>
-                            <td>2015/04/01</td>
-                            <td>Doe</td>
-                            <td>Brazil</td>
-                            <td>
-                              <label class="badge badge-danger">Pending</label>
-                            </td>
-                          </tr>
-                          <tr>
-                            <td class="sorting_1">3</td>
-                            <td>2010/11/21</td>
-                            <td>Sam</td>
-                            <td>Tokyo</td>
-                            <td>
-                              <button class="btn btn-outline-primary">View</button>
-                            </td>
-                          </tr>
-                          <tr>
-                            <td class="sorting_1">2</td>
-                            <td>2015/04/01</td>
-                            <td>Doe</td>
-                            <td>Brazil</td>
-                            <td>
-                              <label class="badge badge-sucess">Pending</label>
-                            </td>
-                          </tr>
-                          <tr class="odd">
-                            <td class="sorting_1">2</td>
-                            <td>2015/04/01</td>
-                            <td>Doe</td>
-                            <td>Brazil</td>
-                            <td>
-                              <label class="badge badge-info">Pending</label>
-                            </td>
                           </tr>
                         </tbody>
                       </table>
@@ -267,7 +222,7 @@
           <!-- End Point Loads -->
 
           <!-- Dist Loads -->
-          <div class="card-body" style="overflow-y:auto; display: none;">
+          <div class="card-body tabcontent" id="card-body-distributed" style="overflow-y:auto; display: none;">
             <!-- <div class="row"> -->
               <div class="col-12 nopadding">
                 <div class="table">
@@ -287,70 +242,39 @@
                           {% for dl in distributed_loads %}
                             <tr>
                                 <td class="sorting_1 nopadding">
-                                  <input id="Distributed-Index-{{ dl.index }}" class="form-control form-control-sm bg-transparent border-transparent load-table-input numberinput" value= {{ dl.index }} onfocus="this.select();">
+                                  <input id="Distributed-Index-{{ dl.index }}" class="form-control form-control-sm bg-transparent border-transparent load-table-input numberinput" value= "{{ dl.index }}" onfocus="this.select();">
                                 </td>
                                 <td class="nopadding">
-                                  <input id="Distributed-Magnitude-{{ dl.index }}" class="form-control form-control-sm bg-transparent border-transparent load-table-input numberinput" value= {{ dl.magnitude }} onfocus="this.select();">
+                                  <input id="Distributed-startMagnitude-{{ dl.index }}" class="form-control form-control-sm bg-transparent border-transparent load-table-input numberinput" value= "{{ dl.startMagnitude }}" onfocus="this.select();">
                                 </td>
                                 <td class="nopadding">
-                                  <input id="Distributed-Location-{{ dl.index }}" class="form-control form-control-sm bg-transparent border-transparent load-table-input numberinput" value= {{ dl.location }} onfocus="this.select();">
+                                  <input id="Distributed-endMagnitude-{{ dl.index }}" class="form-control form-control-sm bg-transparent border-transparent load-table-input numberinput" value= "{{ dl.endMagnitude }}" onfocus="this.select();">
+                                </td>
+                                <td class="nopadding">
+                                  <input id="Distributed-startLocation-{{ dl.index }}" class="form-control form-control-sm bg-transparent border-transparent load-table-input numberinput" value= "{{ dl.startLocation }}" onfocus="this.select();">
+                                </td>
+                                <td class="nopadding">
+                                  <input id="Distributed-endLocation-{{ dl.index }}" class="form-control form-control-sm bg-transparent border-transparent load-table-input numberinput" value= "{{ dl.endLocation }}" onfocus="this.select();">
                                 </td>
                             </tr>
                           {% endfor %}
                           <tr>
-                            <!-- <form id="new-point-load" method="POST">{% csrf_token %} -->
                               <td class="sorting_1 nopadding">
-                                <input type="number" name="magnitude" class="form-control form-control-sm bg-transparent border-transparent numberinput" id="form-index" step="any" required="">
+                                <input type="number" class="form-control form-control-sm bg-transparent border-transparent numberinput" id="form-index" step="any" required="">
                               </td>
                               <td class="nopadding">
-                                <input type="number" name="magnitude" class="form-control form-control-sm bg-transparent border-transparent numberinput" id="form-magnitude" step="any" required="">
+                                <input type="number"class="form-control form-control-sm bg-transparent border-transparent numberinput" id="form-startMagnitude" step="any" required="">
                               </td>
                               <td class="nopadding">
-                                <input type="number" name="magnitude" class="form-control form-control-sm bg-transparent border-transparent numberinput" id="form-location" step="any" required="">
+                                <input type="number"class="form-control form-control-sm bg-transparent border-transparent numberinput" id="form-startLocation" step="any" required="">
                               </td>
-                            <!-- </form> -->
                           </tr>
                           <tr>
-                            <td class="sorting_1">1</td>
-                            <td>2012/08/03</td>
-                            <td>Edinburgh</td>
-                            <td>New York</td>
-                            <td>$1500</td>
-                          </tr>
-                          <tr>
-                            <td class="sorting_1">2</td>
-                            <td>2015/04/01</td>
-                            <td>Doe</td>
-                            <td>Brazil</td>
                             <td>
                               <label class="badge badge-danger">Pending</label>
                             </td>
-                          </tr>
-                          <tr>
-                            <td class="sorting_1">3</td>
-                            <td>2010/11/21</td>
-                            <td>Sam</td>
-                            <td>Tokyo</td>
                             <td>
                               <button class="btn btn-outline-primary">View</button>
-                            </td>
-                          </tr>
-                          <tr>
-                            <td class="sorting_1">2</td>
-                            <td>2015/04/01</td>
-                            <td>Doe</td>
-                            <td>Brazil</td>
-                            <td>
-                              <label class="badge badge-sucess">Pending</label>
-                            </td>
-                          </tr>
-                          <tr class="odd">
-                            <td class="sorting_1">2</td>
-                            <td>2015/04/01</td>
-                            <td>Doe</td>
-                            <td>Brazil</td>
-                            <td>
-                              <label class="badge badge-info">Pending</label>
                             </td>
                           </tr>
                         </tbody>
@@ -371,3 +295,30 @@
   </div>
 
 {% endblock pagetables %}
+
+{% block pagetableScripts %}
+
+<script type="text/javascript">
+  function showLoads(evt, loadType) {
+    // Declare all variables
+    var i, tabcontent, tablinks;
+
+    // Get all elements with class="tabcontent" and hide them
+    tabcontent = document.getElementsByClassName("tabcontent");
+    for (i = 0; i < tabcontent.length; i++) {
+      tabcontent[i].style.display = "none";
+    }
+
+    // Get all elements with class="tablinks" and remove the class "active"
+    tablinks = document.getElementsByClassName("tablinks");
+    for (i = 0; i < tablinks.length; i++) {
+      tablinks[i].className = tablinks[i].className.replace(" active", "");
+    }
+
+    // Show the current tab, and add an "active" class to the button that opened the tab
+    document.getElementById(loadType).style.display = "block";
+    // evt.currentTarget.className += " active";
+  }
+  </script>
+
+{% endblock pagetableScripts %}

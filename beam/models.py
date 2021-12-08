@@ -34,11 +34,11 @@ class pointLoad(models.Model):
     # definitely remove null and blank in the future to make the load case required
     load_case = models.ForeignKey(loadCase, on_delete=models.CASCADE, null=True, blank=True)
     # beam = models.ForeignKey(BeamProperties, on_delete=models.CASCADE, null=True, blank=True)
-    magnitude = models.DecimalField(max_digits=8, decimal_places=2)
-    location = models.CharField(max_length=10)
+    startMagnitude = models.DecimalField(max_digits=8, decimal_places=2)
+    startLocation = models.CharField(max_length=10)
 
     def __str__(self):
-        return f'{self.load_case} {self.magnitude} {self.location}'
+        return f'{self.load_case} {self.startMagnitude} {self.startLocation}'
 
 class distributedLoad(models.Model):
     index = models.IntegerField()

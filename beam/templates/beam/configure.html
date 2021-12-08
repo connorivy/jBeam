@@ -93,20 +93,20 @@
             this.maxDL = 0;
         }
 
-        defineLoad(magnitude, startLocation, endLocation=null, endMagnitude=null) {
+        defineLoad(startMagnitude, startLocation, endLocation=null, endMagnitude=null) {
             var rand = Math.round(colorList.length * Math.random());
             var color = colorList[rand];
             colorList.splice(rand,1);
 
             // determine if point or dist load
             if (endLocation) {
-                var load = new Dist(color, magnitude, startLocation, endLocation);
+                var load = new Dist(color, startMagnitude, startLocation, endLocation);
                 this.DLs.push(load);
                 load.index = this.DLs.length-1;
                 load.type = 'dist';
 
-                if (Math.abs(load.magnitude) > this.maxDL) {
-                    this.maxDL = Math.abs(load.magnitude);
+                if (Math.abs(load.startMagnitude) > this.maxDL) {
+                    this.maxDL = Math.abs(load.startMagnitude);
                     load.isMaxDL = true;
                     for (var i=0;i<this.DLs.length-1; i++) {
                         this.DLs[i].isMaxDL = false;
@@ -115,13 +115,13 @@
                 } else {load.isMaxDL = false;}
             }
             else {
-                var load = new Point(color, magnitude, startLocation);
+                var load = new Point(color, startMagnitude, startLocation);
                 this.PLs.push(load);
                 load.index = this.PLs.length-1;
                 load.type = 'point';
 
-                if (Math.abs(load.magnitude) > this.maxPL) {
-                    this.maxPL = Math.abs(load.magnitude);
+                if (Math.abs(load.startMagnitude) > this.maxPL) {
+                    this.maxPL = Math.abs(load.startMagnitude);
                     load.isMaxPL = true;
                     for (var i=0;i<this.PLs.length-1; i++) {
                         this.PLs[i].isMaxPL = false;
@@ -164,8 +164,6 @@
                 widthLoad = Math.abs(load.endLocationOnCanvas - load.startLocationOnCanvas);
                 numArrows = Math.floor(width / (widthLoad * 1.8)) - 1;
 
-                console.log(numArrows)
-
                 if (load.isMaxDL) {
                     set_max_dist_load(this);
                 }
@@ -174,14 +172,14 @@
                 // add top bar piece to dist load
                 cylGeo.push(new THREE.CylinderGeometry( cylThickness, cylThickness, widthLoad, 40 ));
                 cylGeo.at(-1).rotateZ(Math.PI / 2);
-                cylGeo.at(-1).translate((load.startLocationOnCanvas+load.endLocationOnCanvas)/2, 0, beamHeight + -1 * coneHeight + load.magnitude*multiplier + cylheight_min);
+                cylGeo.at(-1).translate((load.startLocationOnCanvas+load.endLocationOnCanvas)/2, 0, beamHeight + -1 * coneHeight + load.startMagnitude*multiplier + cylheight_min);
 
             } else {
                 // needs to be set to zero to make the loop work even though there will be one arrow
                 numArrows = 0;
 
                 // if load is currently or should now be setting the height limit, redraw the rest of the beams
-                if (load.isMaxPL || load.magnitude > this.maxPL) {
+                if (load.isMaxPL || load.startMagnitude > this.maxPL) {
                     set_max_point_load(this);
                     redrawPointLoads(this, load.index);
                 }
@@ -190,7 +188,7 @@
 
             for (let i = 0; i <= ( numArrows + 1 ); i++) {
                 // geometries
-                cylGeo.push(new THREE.CylinderGeometry( cylThickness, cylThickness, load.magnitude*multiplier + cylheight_min, 40 ));
+                cylGeo.push(new THREE.CylinderGeometry( cylThickness, cylThickness, load.startMagnitude*multiplier + cylheight_min, 40 ));
                 coneGeo.push(new THREE.ConeGeometry( 3, coneHeight, 20 ));
 
                 // orientation of geometries
@@ -198,7 +196,7 @@
                 coneGeo.at(-1).translate(load.startLocationOnCanvas + i * widthLoad / (numArrows+1), 0, -1 * coneHeight / 2 + beamHeight);
 
                 cylGeo.at(-1).rotateX(Math.PI / 2);
-                cylGeo.at(-1).translate(load.startLocationOnCanvas + i * widthLoad / (numArrows+1), 0, beamHeight + -1 * coneHeight + (load.magnitude * multiplier + cylheight_min)/ 2);
+                cylGeo.at(-1).translate(load.startLocationOnCanvas + i * widthLoad / (numArrows+1), 0, beamHeight + -1 * coneHeight + (load.startMagnitude * multiplier + cylheight_min)/ 2);
             }
             
             // combine geometries into single geometry and create mesh object
@@ -221,9 +219,9 @@
     }
 
     class Point {
-        constructor(color, magnitude, location) {
-            this.startLocation = location;
-            this.magnitude = magnitude;
+        constructor(color, startMagnitude, startLocation) {
+            this.startLocation = startLocation;
+            this.startMagnitude = startMagnitude;
             this.color = color;
             this.beam = beam;
             this.type = 'point';
@@ -251,8 +249,8 @@
             this.b = this.beam.L_btwn_supports - this.a;
 
             return {
-                left: (this.magnitude * this.b) / (this.beam.L),
-                right: (this.magnitude * this.a) / (this.beam.L)
+                left: (this.startMagnitude * this.b) / (this.beam.L),
+                right: (this.startMagnitude * this.a) / (this.beam.L)
             };
         }
 
@@ -265,9 +263,9 @@
         // }
     }
     class Dist {
-        constructor(color, magnitude, startLocation, endLocation, endMagnitude=null) {
+        constructor(color, startMagnitude, startLocation, endLocation, endMagnitude=null) {
             this.color = color;
-            this.magnitude = magnitude;
+            this.startMagnitude = startMagnitude;
             this.startLocation = startLocation;
             this.endLocation = endLocation;
             this.endMagnitude = endMagnitude;
@@ -350,7 +348,7 @@
 
         // draw arrows 
         {% for pl in point_loads %}
-        beam.defineLoad({{ pl.magnitude }}, {{ pl.location}})
+        beam.defineLoad({{ pl.startMagnitude }}, {{ pl.startLocation}})
         beam.drawLoad(beam.PLs.at(-1))
         {% endfor %}
 
@@ -456,8 +454,8 @@
         var maxIndex=0;
         for (var i=0; i<beam.PLs.length; i++) {
             beam.PLs[i].isMaxPL = false;
-            if (beam.PLs[i].magnitude > max) {
-                max = beam.PLs[i].magnitude;
+            if (beam.PLs[i].startMagnitude > max) {
+                max = beam.PLs[i].startMagnitude;
                 maxIndex = i;
             }
         }
@@ -477,8 +475,8 @@
         var max=0;
         var maxIndex=0;
         for (var i=0; i<beam.DLs.length; i++) {
-            if (beam.DLs[i].magnitude > max) {
-                max = beam.DLs[i].magnitude;
+            if (beam.DLs[i].startMagnitude > max) {
+                max = beam.DLs[i].startMagnitude;
                 maxIndex = i;
             }
         }
@@ -574,8 +572,8 @@
 
             // set value of hidden primary key field to the load index
             $("#form-index").val(+parseInt(CLICKED.userData.index).toFixed(4));
-            $('#form-magnitude').val(beam.PLs.at(CLICKED.userData.index).magnitude)
-            $('#form-location').val(beam.PLs.at(CLICKED.userData.index).startLocation)
+            $('#form-startMagnitude').val(beam.PLs.at(CLICKED.userData.index).startMagnitude)
+            $('#form-startLocation').val(beam.PLs.at(CLICKED.userData.index).startLocation)
         }
         else if (CLICKED) {
             if (CLICKED.userData.type == 'point') var loadList = beam.PLs;
@@ -586,8 +584,8 @@
 
             // set value of hidden primary key field to null
             $("#form-index").val('');
-            $('#form-magnitude').val('')
-            $('#form-location').val('')
+            $('#form-startMagnitude').val('')
+            $('#form-startLocation').val('')
         }
     }
 
@@ -661,18 +659,24 @@
         
         if (attributeArray[0] == 'Point') {
             var load = beam.PLs.at(attributeArray[2])
+            var loadType = 'point'
         } else if (attributeArray[0] == 'Distributed') {
-
+            var load = beam.DLs.at(attributeArray[2])
+            var loadType = 'distributed'
         } else {
 
         }
 
         if (attributeArray[1] == 'Index') {
             
-        } else if (attributeArray[1] == 'Magnitude') {
-            load.magnitude = parseFloat(e.target.value);
-        } else {
+        } else if (attributeArray[1] == 'startMagnitude') {
+            load.startMagnitude = parseFloat(e.target.value);
+        } else if (attributeArray[1] == 'endMagnitude') {
+            load.endMagnitude = parseFloat(e.target.value);
+        } else if (attributeArray[1] == 'startLocation') {
             load.startLocation = parseFloat(e.target.value);
+        } else if (attributeArray[1] == 'endLocation') {
+            load.endLocation = parseFloat(e.target.value);
         }
 
         beam.drawLoad(load)
@@ -681,8 +685,11 @@
             type: 'POST',
             url: "{% url 'update_point_load' %}",
             data: {
-                "magnitude": load.magnitude,
-                'location': load.startLocation,
+                "loadType": loadType,
+                "startMagnitude": load.startMagnitude,
+                'startLocation': load.startLocation,
+                "endMagnitude": load.endMagnitude,
+                'endLocation': load.endLocation,
                 'index': load.index,
                 'L': beam.L,
             },
@@ -695,8 +702,8 @@
 
     });
 
-    $("#form-location").focusout(function (e) {
-        if ($("#form-magnitude").val() == '') {
+    $("#form-startLocation").focusout(function (e) {
+        if ($("#form-startMagnitude").val() == '') {
             console.log('no mag')
             return
         } else if (e.target.value == '') {
@@ -704,7 +711,7 @@
             return
         }
 
-        beam.defineLoad($("#form-magnitude").val(), e.target.value)
+        beam.defineLoad($("#form-startMagnitude").val(), e.target.value)
 
         var load = beam.PLs.at(-1);
         beam.drawLoad(load)
@@ -714,8 +721,8 @@
             type: 'POST',
             url: "{% url 'update_point_load' %}",
             data: {
-                "magnitude": load.magnitude,
-                'location': load.startLocation,
+                "startMagnitude": load.startMagnitude,
+                'startLocation': load.startLocation,
                 'index': load.index,
                 'L': beam.L,
             },
@@ -726,7 +733,7 @@
                                         <input id="Point-Index-` + load.index + `" class="form-control form-control-sm bg-transparent border-transparent load-table-input numberinput" value= ` + load.index + ` onfocus="this.select();">
                                     </td>
                                     <td class="nopadding">
-                                        <input id="Point-Magnitude-` + load.index + `" class="form-control form-control-sm bg-transparent border-transparent load-table-input numberinput" value= ` + load.magnitude + ` onfocus="this.select();">
+                                        <input id="Point-Magnitude-` + load.index + `" class="form-control form-control-sm bg-transparent border-transparent load-table-input numberinput" value= ` + load.startMagnitude + ` onfocus="this.select();">
                                     </td>
                                     <td class="nopadding">
                                         <input id="Point-Location-` + load.index + `" class="form-control form-control-sm bg-transparent border-transparent load-table-input numberinput" value= ` + load.startLocation + ` onfocus="this.select();">
@@ -734,9 +741,9 @@
                                 </tr>`);
                 newrow.insertBefore(e.target.closest('tr'));
                 $("#form-index").val('');
-                $('#form-magnitude').val('');
-                $('#form-magnitude').focus();
-                $('#form-location').val('');
+                $('#form-startMagnitude').val('');
+                $('#form-startMagnitude').focus();
+                $('#form-startLocation').val('');
             },
             error: function (response) {
                 console.log('error')
@@ -752,8 +759,8 @@
             return
         }
         var load = beam.PLs.at(CLICKED.userData.index)
-        load.magnitude = parseFloat($('#form-magnitude').val());
-        load.startLocation = parseFloat($('#form-location').val());
+        load.startMagnitude = parseFloat($('#form-startMagnitude').val());
+        load.startLocation = parseFloat($('#form-startLocation').val());
         beam.drawLoad(load)
 
         // GET AJAX request
@@ -761,8 +768,8 @@
             type: 'POST',
             url: "{% url 'update_point_load' %}",
             data: {
-                "magnitude": load.magnitude,
-                'location': load.startLocation,
+                "startMagnitude": load.startMagnitude,
+                'startLocation': load.startLocation,
                 'index': load.index,
                 'L': beam.L,
             },
