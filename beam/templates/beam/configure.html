@@ -100,7 +100,10 @@
 
             // determine if point or dist load
             if (endLocation) {
-                var load = new Dist(color, startMagnitude, startLocation, endLocation);
+                if (endMagnitude == null) {
+                    endMagnitude = startMagnitude;
+                }
+                var load = new Dist(color, startMagnitude, startLocation, endLocation, endMagnitude);
                 this.DLs.push(load);
                 load.index = this.DLs.length-1;
                 load.type = 'dist';
@@ -271,7 +274,13 @@
             this.endMagnitude = endMagnitude;
         }
     }
-    // let globals = new Globals();
+
+    function define_highlight_colors(mesh) {
+        // define og_color and highlighted color
+        load.og_color = load.arrowMat.color.getHex();
+        load.highlight_color = new THREE.Color(load.og_color)
+        load.highlight_color.lerp(this.clickColor, .5)
+    }
 
     const pointer = new THREE.Vector2();
     const mouse = new THREE.Vector2();
@@ -556,36 +565,31 @@
     }
 
     function onClick( event ) {
-        console.log(camera.position)
         if (INTERSECTED) {
             // console.log(INTERSECTED)
             if (INTERSECTED.userData.type == 'point') var loadList = beam.PLs;
             else var loadList = beam.DLs;
 
+            // if there is a mesh that has been clicked previously, change it back to its og_color
             if (CLICKED) { 
-                if (CLICKED.userData.type == 'point') var loadList = beam.PLs;
-                else var loadList = beam.DLs;
-                CLICKED.material.color.set( loadList[CLICKED.userData.index].og_color );
+                CLICKED.material.color.set( CLICKED.userData.og_color );
             }
             CLICKED = INTERSECTED;
             CLICKED.material.color.set( 0x0000ff );
 
-            // set value of hidden primary key field to the load index
-            $("#form-index").val(+parseInt(CLICKED.userData.index).toFixed(4));
-            $('#form-startMagnitude').val(beam.PLs.at(CLICKED.userData.index).startMagnitude)
-            $('#form-startLocation').val(beam.PLs.at(CLICKED.userData.index).startLocation)
+            // // set value of hidden primary key field to the load index
+            // $("#form-index").val(+parseInt(CLICKED.userData.index).toFixed(4));
+            // $('#form-startMagnitude').val(beam.PLs.at(CLICKED.userData.index).startMagnitude)
+            // $('#form-startLocation').val(beam.PLs.at(CLICKED.userData.index).startLocation)
         }
         else if (CLICKED) {
-            if (CLICKED.userData.type == 'point') var loadList = beam.PLs;
-            else var loadList = beam.DLs;
-
-            CLICKED.material.color.set( loadList[CLICKED.userData.index].og_color );
+            CLICKED.material.color.set( CLICKED.userData.og_color );
             CLICKED = null;
 
-            // set value of hidden primary key field to null
-            $("#form-index").val('');
-            $('#form-startMagnitude').val('')
-            $('#form-startLocation').val('')
+            // // set value of hidden primary key field to null
+            // $("#form-index").val('');
+            // $('#form-startMagnitude').val('')
+            // $('#form-startLocation').val('')
         }
     }
 
@@ -618,32 +622,19 @@
         // calculate objects intersecting the picking ray
         const intersects = raycaster.intersectObjects( scene.children );
 
-        // for ( let i = 0; i < intersects.length; i ++ ) {
-
-        //     intersects[ i ].object.material.color.set( 0xff0000 );
-
-        // }
-
         // turns the topmost raycasted line blue and then turns it back to its OG color
         if ( intersects.length > 0 ) {
             // if something is raycasted that is different than what was previously raycasted
             if ( INTERSECTED != intersects[ 0 ].object ) {
                 // reset old color
                 if ( INTERSECTED ) {
-                    INTERSECTED.material.color.set( loadList[INTERSECTED.userData.index].og_color );
+                    INTERSECTED.material.color.set(INTERSECTED.userData.og_color);
                 }
                 INTERSECTED = intersects[ 0 ].object;
-                if (INTERSECTED.userData.type == 'point') var loadList = beam.PLs;
-                else var loadList = beam.DLs;
-                // if intersected is not clicked, highlight it
-                if (INTERSECTED != CLICKED) INTERSECTED.material.color.set( loadList[INTERSECTED.userData.index].highlight_color );
+                if (INTERSECTED != CLICKED) INTERSECTED.material.color.set( INTERSECTED.userData.highlight_color );
             }
         } else if (INTERSECTED) {
-            // if (INTERSECTED) console.log(beam.PLs[INTERSECTED.userData.index].arrowMat.color.getHex());
-            if (INTERSECTED.userData.type == 'point') var loadList = beam.PLs;
-            else var loadList = beam.DLs;
-
-            if ( INTERSECTED != CLICKED) INTERSECTED.material.color.set( loadList[INTERSECTED.userData.index].og_color );
+            if ( INTERSECTED != CLICKED) INTERSECTED.material.color.set( INTERSECTED.userData.og_color );
             INTERSECTED = null;
         }            
 
