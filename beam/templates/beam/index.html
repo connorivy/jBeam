@@ -849,6 +849,10 @@
         <canvas></canvas>
       </div>
       <!-- End Three JS canvas -->
+
+      <div id="beamLenTag" style="position: absolute; line-height: 1em;">
+        <span class="input border-transparent model-input" roll="textbox" id="beamLen" style="margin: auto; line-height: 1em;" onfocus="selectElementContents(this);" contenteditable>30'</span>
+      </div>
       {% block pagetables %} {% endblock pagetables %}
 
       <!-- <div id="table-container">
@@ -1345,6 +1349,16 @@
         new HSFormSearch($(this)).init()
       });
     });
+  </script>
+
+  <script>
+    function selectElementContents(el) {
+      var range = document.createRange();
+      range.selectNodeContents(el);
+      var sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+    }
   </script>
 
   <!-- IE Support -->

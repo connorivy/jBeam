@@ -64,6 +64,18 @@ def update_point_load(request):
         return JsonResponse(json_response, status = 200)
     return JsonResponse({}, status = 400)
 
+def update_model(request):
+    if request.is_ajax and request.method == "GET":
+        try:
+            user_beam = jBeamObject.objects.first()
+            user_beam.L = request.POST.get("L", None)
+            user_beam.save()
+            json_response = 'Update Sucessful'
+        except:
+            json_response = 'Update Unsucessful'
+        return JsonResponse(json_response, status = 200)
+    return JsonResponse({}, status = 400)
+
 def get_diagrams(request):
     if request.is_ajax and request.method == "GET":
         # # get beam from client side

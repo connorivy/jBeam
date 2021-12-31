@@ -21,6 +21,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('beam.urls')),
 
+    # ajax requests
     path('post/ajax/validate/update_point_load', beam_requests.update_point_load, name = "update_point_load"),
+    path('post/ajax/validate/update_model', beam_requests.update_model, name = "update_model"),
     path('get/ajax/validate/get_diagrams', beam_requests.get_diagrams, name = "get_diagrams"),
 ]

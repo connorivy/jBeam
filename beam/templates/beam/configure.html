@@ -12,6 +12,7 @@
     import { LineGeometry } from 'https://cdn.skypack.dev/three@0.130.1/examples/jsm/lines/LineGeometry.js';
     import { BufferGeometryUtils } from 'https://cdn.skypack.dev/three@0.130.1/examples/jsm/utils/BufferGeometryUtils.js';
     import { GLTFLoader } from 'https://cdn.skypack.dev/three@0.130.1/examples/jsm/loaders/GLTFLoader.js';
+    // import { FontLoader } from 'https://cdn.skypack.dev/three@0.136.0/examples/jsm/loaders/FontLoader.js';
     
 
     let camera, controls, scene, renderer;
@@ -20,13 +21,15 @@
     let lineMat;
 
     let beam;
+    let clickColor = new THREE.Color(0x0000ff);
     let beamHeight = 8;
     let coneHeight = -8;
     let cylheight_max = 14;
     let cylheight_min = 5;
     let cylThickness = .5;
     let gui;
-    let initialCamPos = new THREE.Vector3(-313,-945,169);
+    let initialCamPos = new THREE.Vector3(4,-790,4);
+    // let initialCamPos = new THREE.Vector3(-313,-945,169);
 
     let colorList = [
         0xFFFFB300, //Vivid Yellow
@@ -135,11 +138,6 @@
         
             // material
             load.arrowMat = new THREE.MeshBasicMaterial( {color: load.color} );
-            // define og_color and highlighted color
-            load.og_color = load.arrowMat.color.getHex();
-            load.highlight_color = new THREE.Color(load.og_color)
-            load.highlight_color.lerp(this.clickColor, .5)
-
         }
 
         drawLoad(load) {
@@ -207,10 +205,13 @@
             load.mesh = new THREE.Mesh(load.arrowGeo, load.arrowMat)
 
             // assign index in loads to mesh userData
-            load.mesh.userData.index = load.index;
-            load.mesh.userData.type = load.type;
-            load.mesh.userData.og_color = load.og_color;
-            load.mesh.userData.highlight_color = load.highlight_color;
+            define_userData(load.mesh, load.type, load.arrowMat.color.getHex(), load.index);
+            // console.log(load.mesh.userData.og_color, load.og_color);
+            // load.mesh.userData.index = load.index;
+            // load.mesh.userData.type = load.type;
+            // load.mesh.userData.og_color = load.og_color;
+            // load.mesh.userData.highlight_color = load.highlight_color;
+            // console.log(load.highlight_color)
 
             // add arrow mesh object to scene
             scene.add( load.mesh );
@@ -275,11 +276,13 @@
         }
     }
 
-    function define_highlight_colors(mesh) {
+    function define_userData(mesh, type, color, index=null) {
         // define og_color and highlighted color
-        load.og_color = load.arrowMat.color.getHex();
-        load.highlight_color = new THREE.Color(load.og_color)
-        load.highlight_color.lerp(this.clickColor, .5)
+        mesh.userData.index = index
+        mesh.userData.type = type
+        mesh.userData.og_color = color;
+        mesh.userData.highlight_color = new THREE.Color(mesh.userData.og_color);
+        mesh.userData.highlight_color.lerp(clickColor, .5);
     }
 
     const pointer = new THREE.Vector2();
@@ -291,6 +294,9 @@
     animate();
 
     function init() {
+
+        const axisY = -24;
+        const axisHeight = 4;
 
         scene = new THREE.Scene();
         scene.background = new THREE.Color( 0xf9fafc );
@@ -337,10 +343,8 @@
         // to set it every frame anyway so we'll set it to 2 since 2
         // is the the aspect for the canvas default size (300w/150h = 2)
         camera = new THREE.PerspectiveCamera(5.5, 2, 1, 5000);
-        camera.up = new THREE.Vector3( 0, 0, 1 );
-        console.log(initialCamPos.x)
+        camera.up = new THREE.Vector3( 0, 0, 1 );   
         camera.position.set( initialCamPos.x, initialCamPos.y, initialCamPos.z );
-        // camera.position.set(0,-200,0);
 
         var controls = new MapControls(camera, renderer.domElement);
         controls.screenSpacePanning = true;
@@ -362,20 +366,12 @@
         {% endfor %}
 
         {% for dl in distributed_loads %}
-        beam.defineLoad({{ dl.startMagnitude }}, {{ dl.startLocation}}, {{ dl.endLocation }})
+        beam.defineLoad({{ dl.startMagnitude }}, {{ dl.startLocation}}, {{ dl.endLocation }}, {{ dl.endMagnitude }})
         beam.drawLoad(beam.DLs.at(-1))
         {% endfor %}
-        
-        
-        // beam.defineLoad(25,10);
-        // beam.defineLoad(40,30);
-        // beam.defineLoad(20, -100, -5);
-        // beam.drawLoad(beam.PLs.at(-1))
-        // beam.drawLoad(beam.PLs.at(-2))
-        // beam.drawLoad(beam.DLs.at(-1))
 
         
-        // // materials
+        // materials
         lineMat = new LineMaterial( {
             color: 0xdddddd,
             linewidth: 3, // in pixels
@@ -385,33 +381,32 @@
             alphaToCoverage: true,
         } );
 
-        drawLine([[-100,0,-18],[-100, 0, -26]]);
-        drawLine([[100,0,-18],[100, 0, -26]]);
-        drawLine([[-100,0,-22],[-10, 0, -22]]);
-        drawLine([[100,0,-22],[10, 0, -22]]);
-
+        drawLine([[-100,0,axisY+axisHeight],[-100, 0, axisY-axisHeight]]);
+        drawLine([[100,0,axisY+axisHeight],[100, 0, axisY-axisHeight]]);
+        drawLine([[-100,0,axisY],[110, 0, axisY]]);
+        drawLine([[110,0,axisY],[106, 0, axisY+axisHeight-1]]);
+        drawLine([[110,0,axisY],[106, 0, axisY-axisHeight+1]]);
 
         // world
 
-        const geometry = new THREE.ConeGeometry( 5, 10, 4 );
+        const geometry = new THREE.ConeGeometry( 5, 10, 25 );
         const material = new THREE.MeshStandardMaterial( {color: 0x00ff00, metalness: 0.5, roughness: 0.5,} );
         var cylinder = new THREE.Mesh( geometry, material );
+        define_userData(cylinder, 'support', cylinder.material.color.getHex(), 0);
         cylinder.position.x = -100
         cylinder.position.z = -12
         cylinder.rotation.x = Math.PI / 2;
         cylinder.rotation.y = Math.PI / 8;
         scene.add( cylinder );
 
-        var cylinder2 = new THREE.Mesh( geometry, material );
+        const material2 = new THREE.MeshStandardMaterial( {color: 0x00ff00, metalness: 0.5, roughness: 0.5,} );
+        var cylinder2 = new THREE.Mesh( geometry, material2 );
+        define_userData(cylinder2, 'support', cylinder2.material.color.getHex(), 1);
         cylinder2.position.x = 100
         cylinder2.position.z = -13
         cylinder2.rotation.x = Math.PI / 2;
         cylinder2.rotation.y = Math.PI / 8;
         scene.add( cylinder2 );
-
-
-        // camera.lookAt(new THREE.Vector3( -15, 0, 0 ));
-        resizeCanvasToDisplaySize()
 
         // lights
 
@@ -435,7 +430,7 @@
         document.addEventListener( 'mousemove', onMouseMove );
         canvas.addEventListener( 'click', onClick );
         document.addEventListener('keyup', onKeyUp);
-        //draw_diagrams();
+        resizeCanvasToDisplaySize();
         // initGui();
 
         // const gui = new GUI();
@@ -517,6 +512,16 @@
         scene.add( line );
     }
 
+    function createVector(x, y, z, camera, width, height) {
+        var p = new THREE.Vector3(x, y, z);
+        var vector = p.project(camera);
+
+        vector.x = (vector.x + 1) / 2 * width;
+        vector.y = -(vector.y - 1) / 2 * height;
+
+        return vector;
+    };
+
     function resizeCanvasToDisplaySize() {
         const canvas = renderer.domElement;
         // look up the size the canvas is being displayed
@@ -532,22 +537,28 @@
 
             // update camera position
             var vFOV = THREE.MathUtils.degToRad( camera.fov ); // convert vertical fov to radians
-            var desired_screen_width = 205;
-            var desired_screen_height = 73;
+            var desired_screen_width = 220;
+            var desired_screen_height = 79;
 
             var dist_for_height = desired_screen_height / ( 2 * Math.tan(vFOV/2) )
             var dist_for_width = desired_screen_width / ( 2 * Math.tan(vFOV/2) * camera.aspect )
 
             var dist = Math.max(dist_for_height, dist_for_width)
 
-            console.log(dist_for_height, dist_for_width)
-
             var multiplier = dist / Math.sqrt(initialCamPos.x*initialCamPos.x+initialCamPos.y*initialCamPos.y+initialCamPos.z*initialCamPos.z) // I'm essentially linearly interpolating the camera on this line
             camera.position.set( initialCamPos.x*multiplier, initialCamPos.y*multiplier, initialCamPos.z*multiplier );
+            camera.lookAt(initialCamPos.x*multiplier, 0, initialCamPos.z*multiplier);
 
             // set matLine resolution
             lineMat.resolution.set( width, height );
 
+            //calculate text locations
+            var rect = canvas.getBoundingClientRect();
+            var beamLenTag = document.getElementById('beamLenTag');
+            beamLenTag.style.fontSize = 1 / multiplier * 25 + 'px'; // maybe change this from px to have a more scalable webpage
+            var vect = createVector(100, 0, -29, camera, width, height);
+            beamLenTag.style.top = vect.y + rect.top + 'px';
+            beamLenTag.style.left = vect.x  - beamLenTag.clientWidth / 2 + rect.left + 'px';      
         }
     }
 
@@ -560,11 +571,10 @@
 
         mouse.x = ( ( event.clientX - rect.left ) / ( rect.width ) ) * 2 - 1;
         mouse.y = - ( ( event.clientY - rect.top ) / ( rect.height) ) * 2 + 1;
-
-
     }
 
     function onClick( event ) {
+        console.log(camera.position);
         if (INTERSECTED) {
             // console.log(INTERSECTED)
             if (INTERSECTED.userData.type == 'point') var loadList = beam.PLs;
@@ -742,34 +752,23 @@
         })
     });
 
-    $("#sidebar").mouseleave(function (e) {
+    $(".model-input").focusout(function (e) {
         e.preventDefault();
-        // get the point load primary key
-        // var key = $('#form-index').val();
-        if (!CLICKED) {
-            return
-        }
-        var load = beam.PLs.at(CLICKED.userData.index)
-        load.startMagnitude = parseFloat($('#form-startMagnitude').val());
-        load.startLocation = parseFloat($('#form-startLocation').val());
-        beam.drawLoad(load)
 
-        // GET AJAX request
+        beam.L = e.target.innerHTML;
+        console.log('beam.L', beam.L);
+
         $.ajax({
             type: 'POST',
-            url: "{% url 'update_point_load' %}",
+            url: "{% url 'update_model' %}",
             data: {
-                "startMagnitude": load.startMagnitude,
-                'startLocation': load.startLocation,
-                'index': load.index,
                 'L': beam.L,
             },
             success: function (response) {
-                // part = $(".vendorpart").val(response["part"]);
-                // cost = $(".vendorcost").val(response["cost"]);
+                console.log('success')
             },
             error: function (response) {
-                console.log(response)
+                console.log('failure')
             }
         })
     });
