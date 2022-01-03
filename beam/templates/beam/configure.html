@@ -301,7 +301,7 @@
         scene = new THREE.Scene();
         scene.background = new THREE.Color( 0xf9fafc );
         // scene.fog = new THREE.FogExp2( 0xcccccc, 0.002 );
-        const canvas = document.querySelector("#content canvas");
+        const canvas = document.querySelector("#threejs-container canvas");
 
         renderer = new THREE.WebGLRenderer( { canvas: canvas, antialias: true } );
 
@@ -337,6 +337,7 @@
             console.error( error );
 
         } );
+
 
 
         // There's no reason to set the aspect here because we're going
@@ -514,6 +515,9 @@
 
     function createVector(x, y, z, camera, width, height) {
         var p = new THREE.Vector3(x, y, z);
+        var temp = new THREE.Vector3(0,0,0);
+        // this muct be called or the result of this function on load will not be correct
+        camera.getWorldPosition(temp);
         var vector = p.project(camera);
 
         vector.x = (vector.x + 1) / 2 * width;
@@ -555,8 +559,10 @@
             //calculate text locations
             var rect = canvas.getBoundingClientRect();
             var beamLenTag = document.getElementById('beamLenTag');
+            // beamLenTag.innerHTML = beam.L;
             beamLenTag.style.fontSize = 1 / multiplier * 25 + 'px'; // maybe change this from px to have a more scalable webpage
-            var vect = createVector(100, 0, -29, camera, width, height);
+            var vect = createVector(100, 0, -29, camera, rect.width, rect.height);
+
             beamLenTag.style.top = vect.y + rect.top + 'px';
             beamLenTag.style.left = vect.x  - beamLenTag.clientWidth / 2 + rect.left + 'px';      
         }
@@ -762,7 +768,7 @@
             type: 'POST',
             url: "{% url 'update_model' %}",
             data: {
-                'L': beam.L,
+                "L": beam.L,
             },
             success: function (response) {
                 console.log('success')

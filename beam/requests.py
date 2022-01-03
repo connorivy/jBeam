@@ -54,25 +54,23 @@ def update_point_load(request):
                 print(json_response)
                 # distributed_load = distributedLoad.objects.create(index=index, startMagnitude=request.POST.get("startMagnitude", None), startLocation=request.POST.get("startLocation", None), endMagnitude=request.POST.get("endMagnitude", None), endLocation=request.POST.get("endLocation", None))
 
-        try:
-            user_beam = jBeamObject.objects.first()
-            user_beam.L = request.POST.get("L", None)
-            user_beam.save()
-        except:
-            startLocation = ''
-            startMagnitude = ''
         return JsonResponse(json_response, status = 200)
     return JsonResponse({}, status = 400)
 
+@csrf_exempt
 def update_model(request):
-    if request.is_ajax and request.method == "GET":
+    if request.is_ajax and request.method == "POST":
         try:
             user_beam = jBeamObject.objects.first()
             user_beam.L = request.POST.get("L", None)
             user_beam.save()
-            json_response = 'Update Sucessful'
+            json_response = {
+                'success': True,
+            }
         except:
-            json_response = 'Update Unsucessful'
+            json_response = {
+                'success': False,
+            }
         return JsonResponse(json_response, status = 200)
     return JsonResponse({}, status = 400)
 
