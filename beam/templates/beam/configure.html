@@ -19,6 +19,8 @@
     let stats, gpuPanel;
     let INTERSECTED, CLICKED;
     let lineMat;
+    let lineMats = [];
+    let ticks = [];
 
     let beam;
     let clickColor = new THREE.Color(0x0000ff);
@@ -30,6 +32,9 @@
     let gui;
     let initialCamPos = new THREE.Vector3(4,-790,4);
     // let initialCamPos = new THREE.Vector3(-313,-945,169);
+
+    let axisY = -24;
+    let axisHeight = 4;
 
     let colorList = [
         0xFFFFB300, //Vivid Yellow
@@ -94,6 +99,8 @@
             this.clickColor = new THREE.Color(0x0000ff);
             this.maxPL = 0;
             this.maxDL = 0;
+
+            this.set_length();
         }
 
         defineLoad(startMagnitude, startLocation, endLocation=null, endMagnitude=null) {
@@ -142,13 +149,24 @@
 
         drawLoad(load) {
             var click = false;
+            // if load has already been drawn
             if (load.mesh) {
                 if (CLICKED==load.mesh) {
+                    CLICKED.material.color.set( CLICKED.userData.og_color );
                     click = true;
                 }
+
+                // remove arrow mesh
                 load.mesh.geometry.dispose();
                 load.mesh.material.dispose();
                 scene.remove( load.mesh );
+
+                // remove tick mesh
+                for (var i=0; i<ticks[load.mesh.userData.tickIndex].length; i++) {
+                    ticks[load.mesh.userData.tickIndex][i].material.dispose();
+                    ticks[load.mesh.userData.tickIndex][i].geometry.dispose();
+                    scene.remove( ticks[load.mesh.userData.tickIndex][i] );
+                }
             }
             var cylGeo = [];
             var coneGeo = [];
@@ -161,14 +179,34 @@
             load.startLocationOnCanvas = load.startLocation / this.L * 200 - 100;
             load.endLocationOnCanvas = load.endLocation / this.L * 200 - 100;
 
+            // setup for creating a tick on the x axis
+            lineMats.push(new LineMaterial( {
+                color: 0x000000,
+                linewidth: 3, // in pixels
+                vertexColors: false,
+                //resolution:  // to be set by renderer, eventually
+                dashed: false,
+                alphaToCoverage: true,
+            } ));
+            const startLine = drawLine([[load.startLocationOnCanvas,0,axisY+axisHeight],[load.startLocationOnCanvas, 0, axisY-axisHeight]], lineMats.at(-1));
+            startLine.userData.line = true;
+            var endLine = null;
+            scene.add(startLine);
+
             if (load.endLocation) {
                 widthLoad = Math.abs(load.endLocationOnCanvas - load.startLocationOnCanvas);
-                numArrows = Math.floor(width / (widthLoad * 1.8)) - 1;
+                numArrows = Math.floor(width / (widthLoad * 1.8)) - 1;                
 
                 if (load.isMaxDL) {
                     set_max_dist_load(this);
                 }
                 multiplier = cylheight_max / this.maxDL;
+
+                // draw tick mark on x axis
+                const endLine = drawLine([[load.endLocationOnCanvas,0,axisY+axisHeight],[load.endLocationOnCanvas, 0, axisY-axisHeight]], lineMats.at(-1));
+                endLine.userData.line = true;
+                scene.add(endLine);
+                ticks.push([startLine,endLine]);
 
                 // add top bar piece to dist load
                 cylGeo.push(new THREE.CylinderGeometry( cylThickness, cylThickness, widthLoad, 40 ));
@@ -178,6 +216,9 @@
             } else {
                 // needs to be set to zero to make the loop work even though there will be one arrow
                 numArrows = 0;
+
+                // push an array with a single value for the tick mark
+                ticks.push([startLine]);
 
                 // if load is currently or should now be setting the height limit, redraw the rest of the beams
                 if (load.isMaxPL || load.startMagnitude > this.maxPL) {
@@ -205,19 +246,31 @@
             load.mesh = new THREE.Mesh(load.arrowGeo, load.arrowMat)
 
             // assign index in loads to mesh userData
-            define_userData(load.mesh, load.type, load.arrowMat.color.getHex(), load.index);
-            // console.log(load.mesh.userData.og_color, load.og_color);
-            // load.mesh.userData.index = load.index;
-            // load.mesh.userData.type = load.type;
-            // load.mesh.userData.og_color = load.og_color;
-            // load.mesh.userData.highlight_color = load.highlight_color;
-            // console.log(load.highlight_color)
+            define_userData(load.mesh, load.type, load.arrowMat.color.getHex(), load.index, ticks.length - 1);
 
             // add arrow mesh object to scene
             scene.add( load.mesh );
 
+            // if the arrow was clicked, keep it highlighted blue
             if (click) {
                 CLICKED = load.mesh;
+                CLICKED.material.color.set( 0x0000ff );
+                for (var i=0; i<ticks[CLICKED.userData.tickIndex].length; i++) {
+                    ticks[CLICKED.userData.tickIndex][i].material.color.set( 0x0000ff );
+                }
+            }
+        }
+
+        set_length() {
+            const beamLen = document.getElementById('beamLen')
+            beamLen.innerText = beamLen.textContent = String(this.L);
+
+            for (var i=0; i<this.PLs.length; i++) {
+                this.drawLoad(this.PLs[i])
+            }
+
+            for (var i=0; i<this.DLs.length; i++) {
+                this.drawLoad(this.DLs[i])
             }
         }
     }
@@ -276,13 +329,14 @@
         }
     }
 
-    function define_userData(mesh, type, color, index=null) {
+    function define_userData(mesh, type, color, index, tickIndex=null) {
         // define og_color and highlighted color
         mesh.userData.index = index
         mesh.userData.type = type
         mesh.userData.og_color = color;
         mesh.userData.highlight_color = new THREE.Color(mesh.userData.og_color);
         mesh.userData.highlight_color.lerp(clickColor, .5);
+        mesh.userData.tickIndex = tickIndex;
     }
 
     const pointer = new THREE.Vector2();
@@ -294,10 +348,6 @@
     animate();
 
     function init() {
-
-        const axisY = -24;
-        const axisHeight = 4;
-
         scene = new THREE.Scene();
         scene.background = new THREE.Color( 0xf9fafc );
         // scene.fog = new THREE.FogExp2( 0xcccccc, 0.002 );
@@ -338,7 +388,9 @@
 
         } );
 
-
+        //set beam length
+        // const txt = document.createTextNode({{ beam_object.L }})
+        // document.getElementById('beamLen').appendChild(txt)
 
         // There's no reason to set the aspect here because we're going
         // to set it every frame anyway so we'll set it to 2 since 2
@@ -358,7 +410,7 @@
         // scene.add(new THREE.GridHelper(1000, 100));
 
         // Beam(L, E, I, A, Lcant, Rcant, left_support_type, right_support_type)
-        beam = new Beam(30, 29000, 2900, 16, 0, 0, 'pin', 'pin');
+        beam = new Beam({{ beam_object.L }}, 29000, 2900, 16, 0, 0, 'pin', 'pin');
 
         // draw arrows 
         {% for pl in point_loads %}
@@ -495,7 +547,7 @@
         beam.maxDL = max;
     }
 
-    function drawLine(user_points) {
+    function drawLine(user_points, material) {
         // geometries
         const points = [];
         for (var i=0; i<user_points.length; i++) {
@@ -507,10 +559,12 @@
 
         // lineMat.color.set(color);
 
-        var line = new Line2( lineGeo, lineMat );
+        var line = new Line2( lineGeo, material );
         line.computeLineDistances();
         line.scale.set( 1, 1, 1 );
-        scene.add( line );
+
+        return line
+        // scene.add( line );
     }
 
     function createVector(x, y, z, camera, width, height) {
@@ -530,7 +584,7 @@
         const canvas = renderer.domElement;
         // look up the size the canvas is being displayed
         const width = canvas.clientWidth;
-        const height = canvas.clientHeight;        
+        const height = canvas.clientHeight;     
 
         // adjust displayBuffer size to match
         if (canvas.width !== width || canvas.height !== height) {
@@ -555,6 +609,7 @@
 
             // set matLine resolution
             lineMat.resolution.set( width, height );
+            console.log(lineMats.length)
 
             //calculate text locations
             var rect = canvas.getBoundingClientRect();
@@ -565,6 +620,10 @@
 
             beamLenTag.style.top = vect.y + rect.top + 'px';
             beamLenTag.style.left = vect.x  - beamLenTag.clientWidth / 2 + rect.left + 'px';      
+        }
+        // this must happen even if canvas doesn't resize, so put it outside the if statement
+        for (var i=0; i<lineMats.length; i++) {
+            lineMats[i].resolution.set( width, height);
         }
     }
 
@@ -580,18 +639,23 @@
     }
 
     function onClick( event ) {
-        console.log(camera.position);
-        if (INTERSECTED) {
-            // console.log(INTERSECTED)
-            if (INTERSECTED.userData.type == 'point') var loadList = beam.PLs;
-            else var loadList = beam.DLs;
-
+        // console.log(camera.position);
+        // if an item is intersected and it isn't a line or tick mark
+        if (INTERSECTED && INTERSECTED.userData.line==null) {
             // if there is a mesh that has been clicked previously, change it back to its og_color
             if (CLICKED) { 
                 CLICKED.material.color.set( CLICKED.userData.og_color );
+                for (var i=0; i<ticks[CLICKED.userData.tickIndex].length; i++) {
+                    ticks[CLICKED.userData.tickIndex][i].material.color.set( 0x000000 );
+                }
             }
             CLICKED = INTERSECTED;
             CLICKED.material.color.set( 0x0000ff );
+
+            // if the clicked element has a tick mark associated with it, turn that blue as well
+            for (var i=0; i<ticks[CLICKED.userData.tickIndex].length; i++) {
+                ticks[CLICKED.userData.tickIndex][i].material.color.set( 0x0000ff );
+            }
 
             // // set value of hidden primary key field to the load index
             // $("#form-index").val(+parseInt(CLICKED.userData.index).toFixed(4));
@@ -600,6 +664,9 @@
         }
         else if (CLICKED) {
             CLICKED.material.color.set( CLICKED.userData.og_color );
+            for (var i=0; i<ticks[CLICKED.userData.tickIndex].length; i++) {
+                    ticks[CLICKED.userData.tickIndex][i].material.color.set( 0x000000 );
+            }
             CLICKED = null;
 
             // // set value of hidden primary key field to null
@@ -614,7 +681,7 @@
         if (event.code === "Tab") {
             console.log('tab');
         } else if (event.code === 'Slash') {
-            console.log('/')
+            console.log('/');
         }
     }
 
@@ -687,6 +754,7 @@
         }
 
         beam.drawLoad(load)
+        resizeCanvasToDisplaySize()
         // GET AJAX request
         $.ajax({
             type: 'POST',
@@ -710,6 +778,7 @@
     });
 
     $("#form-startLocation").focusout(function (e) {
+        const loadType = 'point'
         if ($("#form-startMagnitude").val() == '') {
             console.log('no mag')
             return
@@ -728,6 +797,7 @@
             type: 'POST',
             url: "{% url 'update_point_load' %}",
             data: {
+                "loadType": loadType,
                 "startMagnitude": load.startMagnitude,
                 'startLocation': load.startLocation,
                 'index': load.index,
@@ -762,7 +832,6 @@
         e.preventDefault();
 
         beam.L = e.target.innerHTML;
-        console.log('beam.L', beam.L);
 
         $.ajax({
             type: 'POST',
@@ -771,6 +840,7 @@
                 "L": beam.L,
             },
             success: function (response) {
+                beam.set_length()
                 console.log('success')
             },
             error: function (response) {

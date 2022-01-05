@@ -52,3 +52,13 @@ class distributedLoad(models.Model):
 
     def __str__(self):
         return f'{self.load_case} {self.startMagnitude} {self.startLocation}'
+
+class section(models.Model):
+    name = models.CharField(max_length=10, primary_key=True)
+    area = models.DecimalField(max_digits=8, decimal_places=2)
+    depth = models.DecimalField(max_digits=8, decimal_places=2)
+    weight = models.DecimalField(max_digits=8, decimal_places=2)
+    Ixx = models.DecimalField(max_digits=8, decimal_places=2)
+
+    def __str__(self):
+        return f'{self.name}'

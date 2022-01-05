@@ -1,5 +1,4 @@
 from django.db.models import ForeignKey
-from dashboard.models import *
 
 # this function turns a query into an iterable list
 def query_to_list(query, fields_to_ignore=[]):

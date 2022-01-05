@@ -3,6 +3,7 @@ from django.http.response import JsonResponse
 from .models import *
 from .forms import *
 from symbeam import beam
+from .utils import query_to_list
 
 @csrf_exempt
 def update_point_load(request):
@@ -23,10 +24,6 @@ def update_point_load(request):
                 point_load.startMagnitude = request.POST.get("startMagnitude", None)
                 point_load.startLocation = request.POST.get("startLocation", None)
                 point_load.save()
-                json_response = {
-                    "startMagnitude":point_load.startMagnitude,
-                    "startLocation":point_load.startLocation, 
-                }
             except:
                 point_load = pointLoad.objects.create(index=index, startMagnitude=request.POST.get("startMagnitude", None), startLocation=request.POST.get("startLocation", None))
 
@@ -38,23 +35,10 @@ def update_point_load(request):
                 distributed_load.endMagnitude = request.POST.get("endMagnitude", None)
                 distributed_load.endLocation = request.POST.get("endLocation", None)
                 distributed_load.save()
-                json_response = {
-                    "startMagnitude":distributed_load.startMagnitude,
-                    "startLocation":distributed_load.startLocation,
-                    "endMagnitude":distributed_load.endMagnitude,
-                    "endLocation":distributed_load.endLocation, 
-                }
             except:
-                json_response = {
-                    "startMagnitude":distributed_load.startMagnitude,
-                    "startLocation":distributed_load.startLocation,
-                    "endMagnitude":distributed_load.endMagnitude,
-                    "endLocation":distributed_load.endLocation, 
-                }
-                print(json_response)
-                # distributed_load = distributedLoad.objects.create(index=index, startMagnitude=request.POST.get("startMagnitude", None), startLocation=request.POST.get("startLocation", None), endMagnitude=request.POST.get("endMagnitude", None), endLocation=request.POST.get("endLocation", None))
+                distributed_load = distributedLoad.objects.create(index=index, startMagnitude=request.POST.get("startMagnitude", None), startLocation=request.POST.get("startLocation", None), endMagnitude=request.POST.get("endMagnitude", None), endLocation=request.POST.get("endLocation", None))
 
-        return JsonResponse(json_response, status = 200)
+        return JsonResponse({}, status = 200)
     return JsonResponse({}, status = 400)
 
 @csrf_exempt
@@ -98,6 +82,7 @@ def get_diagrams(request):
         calc_beam.solve()
 
         output = calc_beam.get_chart_values(subs={'E': (29000 * 144)})
+        output['sections'] = query_to_list(section.objects.filter(Ixx__gt = float(output['I_req'])))
 
         return JsonResponse(output, status = 200)
 
