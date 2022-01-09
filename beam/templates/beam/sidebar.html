@@ -56,7 +56,6 @@
                 <span class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate" title="Dashboards">Diagrams</span>
             </a>
         
-
             <ul class="js-navbar-vertical-aside-submenu nav nav-sub">
                 <li class="nav-item">
                     <canvas id="shearChart"></canvas>
@@ -69,62 +68,13 @@
                 </li>
             </ul>
         </li>
+        <form>
+            <label> Beam Size </label>
+            <select id="sectionSelect">
+            </select>
+        </form>
         <!-- <button>See Calculations</button>   -->
     </ul>
-
-    <nav id="sidebar" class = "navbar-nav navbar-nav-lg nav-tabs navbar-vertical-without-icons pt-2" style="display: none;">
-        <div class="sidebar-header">
-            <h3>Point Load</h3>
-        </div>
-        <form class="form-horizontal" method="POST">{% csrf_token %}
-            <table class="table table-striped">
-                <tbody>
-                    <tr>
-                        <th>
-                            Magnitude
-                        </th>
-                        <td>
-                            <!-- {{ form.magnitude|as_crispy_field }} -->
-                        </td>
-                    </tr>
-                    <tr>
-                        <th>
-                            Location
-                        </th>
-                        <td>
-                            <!-- {{ form.location|as_crispy_field }} -->
-                        </td>
-                    </tr>
-                    <tr>
-                        <th>
-                            Load Index
-                        </th>
-                        <td>
-                            <!-- {{ form.index|as_crispy_field }} -->
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-            <button type="submit" class="btn btn-primary" value='POST'>Submit</button>
-        </form>
-
-        <ul class="list-unstyled CTAs">
-            <li>
-                <a href="https://bootstrapious.com/tutorial/files/sidebar.zip" class="download">Download source</a>
-            </li>
-            <li>
-                <a href="https://bootstrapious.com/p/bootstrap-sidebar" class="article">Back to article</a>
-            </li>
-        </ul>
-    </nav>
-
-    <!-- <nav id="sidebar" style="display: none;">
-        <canvas id="shearChart"></canvas>
-        <canvas id="momentChart"></canvas>
-        <canvas id="deflectionChart"></canvas>
-        <button>See Calculations</button>
-        
-    </nav> -->
 
 {% endblock leftsidebar %}
 
@@ -137,6 +87,16 @@
             url: "{% url 'get_diagrams' %}",
 
             success: function (response) {
+                for (var i=0; i<response['sections'].length; i++) {
+
+                    //create node with a value = Ixx and text equal to name of shape
+                    var node = document.createElement('OPTION');
+                    node.setAttribute("value", parseFloat(response['sections'][i][4]));
+                    var newRowText = document.createTextNode(response['sections'][i][0]);
+                    node.appendChild(newRowText);
+                    document.getElementById('sectionSelect').append(node);
+                }
+
                 drawShearDiagram(response)
             },
             error: function (response) {
@@ -348,8 +308,6 @@
                 tooltipEl.style.padding = tooltip.options.padding + 'px ' + activeTooltip.options.padding + 'px';
             }
         }
-
-        console.log(dataInput['max_shear_value_pairs'].at(-1)['x'])
     
         // <block:setup:1>
         const shearData = {
@@ -424,6 +382,8 @@
             ]
         };
 
+        var deflection_value_pairs = changeDeflectionData(dataInput["deflection_value_pairs"]);
+
         const deflectionData = {
             labels: '',
             datasets: [
@@ -432,20 +392,21 @@
                     pointRadius: 0,
                     pointHitRadius: 0,
                     borderColor: "rgba(33, 166, 81,1)",
-                    data: dataInput["deflection_value_pairs"],
+                    data: deflection_value_pairs,
+                    // data: deflection_value_pairs,
                     order: 2,
                 },
-                {
-                    fill: false,
-                    pointRadius: 6,
-                    pointHitRadius: 10,
-                    borderColor: "rgba(33, 166, 81,1)",
-                    borderWidth: 3,
-                    backgroundColor: "rgba(255,255,255,1)",
-                    data: dataInput["max_deflection_value_pairs"],
-                    order: 1,
-                    showLine: false,
-                },
+                // {
+                //     fill: false,
+                //     pointRadius: 6,
+                //     pointHitRadius: 10,
+                //     borderColor: "rgba(33, 166, 81,1)",
+                //     borderWidth: 3,
+                //     backgroundColor: "rgba(255,255,255,1)",
+                //     data: dataInput["max_deflection_value_pairs"],
+                //     order: 1,
+                //     showLine: false,
+                // },
                 {
                     fill: true,
                     pointRadius: 0,
@@ -666,6 +627,10 @@
                     afterFit: function(scale) {
                         scale.width = 50  
                     },
+                    title: {
+                        display: true,
+                        text: 'Deflection [in]'
+                    },
                     ticks: {
                         /*
                         // Include a foot sign in the ticks
@@ -717,8 +682,7 @@
             },
         },
         plugins: [tooltipLine]
-        };
-  
+    };  
     // </block:config>
       
 
@@ -738,7 +702,49 @@
         var shearChart = new Chart(shearCtx, shearConfig)
         var momentChart = new Chart(momentCtx, momentConfig)
         var deflectionChart = new Chart(deflectionCtx, deflectionConfig)
+        deflectionChart.options.Ixx = getIxxForCurrentShape()
+
+        console.log(deflectionChart)
     }
+
+    function changeDeflectionData (list=null) {
+        var Ixx = getIxxForCurrentShape()
+
+        // the chart is being updated if no list is provided
+        if (list == null) {
+            list = [];
+            var ctx = document.getElementById('deflectionChart').getContext('2d');
+            var chart = Chart.getChart(ctx)
+
+            if (chart.options.Ixx == null) {
+                chart.options.Ixx = 1;
+            }
+
+            var datasets = chart.data.datasets
+
+            for ( var dataset=0; dataset<2; dataset++ ) {
+                for (var i=0; i<datasets[dataset].data.length; i++) {
+                    datasets[dataset].data[i].y = datasets[dataset].data[i].y * chart.options.Ixx / Ixx;
+                }
+            }
+
+            chart.options.Ixx = Ixx;
+            chart.update();
+
+        } else { // the chart is being created if a list is provided
+            
+            for (var i=0; i<list.length; i++) {
+                list[i].y = parseFloat(list[i].y) / Ixx;
+            }
+            return list
+        }
+    }
+
+    function getIxxForCurrentShape() {
+        var sectionSelect = document.getElementById("sectionSelect");
+        return sectionSelect.options[sectionSelect.selectedIndex].value;
+    }
+
 </script>
 
 {% endblock externalScripts %}

@@ -81,7 +81,7 @@ def get_diagrams(request):
 
         calc_beam.solve()
 
-        output = calc_beam.get_chart_values(subs={'E': (29000 * 144)})
+        output = calc_beam.get_chart_values(subs={'E': .8 * (29000 * 144)}) # multiply by .8 per AISC requirements (doesn't always apply so I need to fix this later)
         output['sections'] = query_to_list(section.objects.filter(Ixx__gt = float(output['I_req'])))
 
         return JsonResponse(output, status = 200)

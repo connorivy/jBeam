@@ -841,12 +841,17 @@
             },
             success: function (response) {
                 beam.set_length()
+                resizeCanvasToDisplaySize();
                 console.log('success')
             },
             error: function (response) {
                 console.log('failure')
             }
         })
+    });
+
+    $("#sectionSelect").change(function () {
+        changeDeflectionData();
     });
 
 </script>
