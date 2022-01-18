@@ -5,6 +5,7 @@
 
 <script type="module">
     import * as THREE from 'https://cdn.skypack.dev/three@0.130.1';
+    import * as TWEEN from "https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.esm.js";
     import { GUI } from 'https://cdn.skypack.dev/three@0.130.1/examples/jsm/libs/dat.gui.module.js';
     import { MapControls } from 'https://cdn.skypack.dev/three@0.130.1/examples/jsm/controls/OrbitControls.js';
     import { Line2 } from 'https://cdn.skypack.dev/three@0.130.1/examples/jsm/lines/Line2.js';
@@ -31,6 +32,7 @@
     let cylThickness = .5;
     let gui;
     let initialCamPos = new THREE.Vector3(4,-790,4);
+    let profileCamPos = new THREE.Vector3(-700,0,0);
     // let initialCamPos = new THREE.Vector3(-313,-945,169);
 
     let axisY = -24;
@@ -65,279 +67,7 @@
         // 0xFFC10020, //Vivid Red
     ];
 
-    class Beam {
-        constructor(L, E, I, A, Lcant, Rcant, left_support_type, right_support_type) {
-            // This beam class assumes there are only two supports for the beam
-
-
-            // Beam object
-            // L = total length
-            // E = Modulus of elasticity
-            // I = Moment of inertia
-            // A = Area
-            // Lcant = Left cantilever length
-            // Rcant = Right cantilever length
-            // this.left_support_restraints = [Vx, Vy, Vz, Mx, My, Mz]
-            // where 
-
-            // this.PLs = list of point load objects
-            // this.DLs = list of distributed load objects
-            // this.POIs = list of distances that are points of interest where cuts will be made to solve for internal forces 
-
-            this.L = L;
-            this.E = E;
-            this.I = I;
-            this.A = A;
-            this.Lcant = Lcant;
-            this.Rcant = Rcant;
-            this.L_btwn_supports = this.L - this.Lcant - this.Rcant;
-            this.left_support_restraints = left_support_type;
-            this.left_support_type = right_support_type;
-            this.PLs = [];
-            this.DLs = [];
-            this.POIs = [];
-            this.clickColor = new THREE.Color(0x0000ff);
-            this.maxPL = 0;
-            this.maxDL = 0;
-
-            this.set_length();
-        }
-
-        defineLoad(startMagnitude, startLocation, endLocation=null, endMagnitude=null) {
-            var rand = Math.round(colorList.length * Math.random());
-            var color = colorList[rand];
-            colorList.splice(rand,1);
-
-            // determine if point or dist load
-            if (endLocation) {
-                if (endMagnitude == null) {
-                    endMagnitude = startMagnitude;
-                }
-                var load = new Dist(color, startMagnitude, startLocation, endLocation, endMagnitude);
-                this.DLs.push(load);
-                load.index = this.DLs.length-1;
-                load.type = 'dist';
-
-                if (Math.abs(load.startMagnitude) > this.maxDL) {
-                    this.maxDL = Math.abs(load.startMagnitude);
-                    load.isMaxDL = true;
-                    for (var i=0;i<this.DLs.length-1; i++) {
-                        this.DLs[i].isMaxDL = false;
-                    }
-                    // redraw other point loads
-                } else {load.isMaxDL = false;}
-            }
-            else {
-                var load = new Point(color, startMagnitude, startLocation);
-                this.PLs.push(load);
-                load.index = this.PLs.length-1;
-                load.type = 'point';
-
-                if (Math.abs(load.startMagnitude) > this.maxPL) {
-                    this.maxPL = Math.abs(load.startMagnitude);
-                    load.isMaxPL = true;
-                    for (var i=0;i<this.PLs.length-1; i++) {
-                        this.PLs[i].isMaxPL = false;
-                    }
-                    // redraw other point loads
-                } else {load.isMaxPL = false;}
-            }
-        
-            // material
-            load.arrowMat = new THREE.MeshBasicMaterial( {color: load.color} );
-        }
-
-        drawLoad(load) {
-            var click = false;
-            // if load has already been drawn
-            if (load.mesh) {
-                if (CLICKED==load.mesh) {
-                    CLICKED.material.color.set( CLICKED.userData.og_color );
-                    click = true;
-                }
-
-                // remove arrow mesh
-                load.mesh.geometry.dispose();
-                load.mesh.material.dispose();
-                scene.remove( load.mesh );
-
-                // remove tick mesh
-                for (var i=0; i<ticks[load.mesh.userData.tickIndex].length; i++) {
-                    ticks[load.mesh.userData.tickIndex][i].material.dispose();
-                    ticks[load.mesh.userData.tickIndex][i].geometry.dispose();
-                    scene.remove( ticks[load.mesh.userData.tickIndex][i] );
-                }
-            }
-            var cylGeo = [];
-            var coneGeo = [];
-            var numArrows = 0;
-            var multiplier = 0;
-            const canvas = renderer.domElement; 
-            const width = canvas.clientWidth;
-            var widthLoad = 0;
-
-            load.startLocationOnCanvas = load.startLocation / this.L * 200 - 100;
-            load.endLocationOnCanvas = load.endLocation / this.L * 200 - 100;
-
-            // setup for creating a tick on the x axis
-            lineMats.push(new LineMaterial( {
-                color: 0x000000,
-                linewidth: 3, // in pixels
-                vertexColors: false,
-                //resolution:  // to be set by renderer, eventually
-                dashed: false,
-                alphaToCoverage: true,
-            } ));
-            const startLine = drawLine([[load.startLocationOnCanvas,0,axisY+axisHeight],[load.startLocationOnCanvas, 0, axisY-axisHeight]], lineMats.at(-1));
-            startLine.userData.line = true;
-            var endLine = null;
-            scene.add(startLine);
-
-            if (load.endLocation) {
-                widthLoad = Math.abs(load.endLocationOnCanvas - load.startLocationOnCanvas);
-                numArrows = Math.floor(width / (widthLoad * 1.8)) - 1;                
-
-                if (load.isMaxDL) {
-                    set_max_dist_load(this);
-                }
-                multiplier = cylheight_max / this.maxDL;
-
-                // draw tick mark on x axis
-                const endLine = drawLine([[load.endLocationOnCanvas,0,axisY+axisHeight],[load.endLocationOnCanvas, 0, axisY-axisHeight]], lineMats.at(-1));
-                endLine.userData.line = true;
-                scene.add(endLine);
-                ticks.push([startLine,endLine]);
-
-                // add top bar piece to dist load
-                cylGeo.push(new THREE.CylinderGeometry( cylThickness, cylThickness, widthLoad, 40 ));
-                cylGeo.at(-1).rotateZ(Math.PI / 2);
-                cylGeo.at(-1).translate((load.startLocationOnCanvas+load.endLocationOnCanvas)/2, 0, beamHeight + -1 * coneHeight + load.startMagnitude*multiplier + cylheight_min);
-
-            } else {
-                // needs to be set to zero to make the loop work even though there will be one arrow
-                numArrows = 0;
-
-                // push an array with a single value for the tick mark
-                ticks.push([startLine]);
-
-                // if load is currently or should now be setting the height limit, redraw the rest of the beams
-                if (load.isMaxPL || load.startMagnitude > this.maxPL) {
-                    set_max_point_load(this);
-                    redrawPointLoads(this, load.index);
-                }
-                multiplier = cylheight_max / this.maxPL;
-            }
-
-            for (let i = 0; i <= ( numArrows + 1 ); i++) {
-                // geometries
-                cylGeo.push(new THREE.CylinderGeometry( cylThickness, cylThickness, load.startMagnitude*multiplier + cylheight_min, 40 ));
-                coneGeo.push(new THREE.ConeGeometry( 3, coneHeight, 20 ));
-
-                // orientation of geometries
-                coneGeo.at(-1).rotateX(Math.PI / 2);
-                coneGeo.at(-1).translate(load.startLocationOnCanvas + i * widthLoad / (numArrows+1), 0, -1 * coneHeight / 2 + beamHeight);
-
-                cylGeo.at(-1).rotateX(Math.PI / 2);
-                cylGeo.at(-1).translate(load.startLocationOnCanvas + i * widthLoad / (numArrows+1), 0, beamHeight + -1 * coneHeight + (load.startMagnitude * multiplier + cylheight_min)/ 2);
-            }
-            
-            // combine geometries into single geometry and create mesh object
-            load.arrowGeo = BufferGeometryUtils.mergeBufferGeometries(cylGeo.concat(coneGeo));
-            load.mesh = new THREE.Mesh(load.arrowGeo, load.arrowMat)
-
-            // assign index in loads to mesh userData
-            define_userData(load.mesh, load.type, load.arrowMat.color.getHex(), load.index, ticks.length - 1);
-
-            // add arrow mesh object to scene
-            scene.add( load.mesh );
-
-            // if the arrow was clicked, keep it highlighted blue
-            if (click) {
-                CLICKED = load.mesh;
-                CLICKED.material.color.set( 0x0000ff );
-                for (var i=0; i<ticks[CLICKED.userData.tickIndex].length; i++) {
-                    ticks[CLICKED.userData.tickIndex][i].material.color.set( 0x0000ff );
-                }
-            }
-        }
-
-        set_length() {
-            const beamLen = document.getElementById('beamLen')
-            beamLen.innerText = beamLen.textContent = String(this.L);
-
-            for (var i=0; i<this.PLs.length; i++) {
-                this.drawLoad(this.PLs[i])
-            }
-
-            for (var i=0; i<this.DLs.length; i++) {
-                this.drawLoad(this.DLs[i])
-            }
-        }
-    }
-
-    class Point {
-        constructor(color, startMagnitude, startLocation) {
-            this.startLocation = startLocation;
-            this.startMagnitude = startMagnitude;
-            this.color = color;
-            this.beam = beam;
-            this.type = 'point';
-
-            // // if x is greater then L minus right cantilever, it's on the right cantilever
-            // if (this.x > this.beam.L-this.beam.Rcant) pass
-
-            // // if x less than len(left cantilever), it's on the left cantilever
-            // else if (this.x < this.beam.Lcant)
-            //     pass
-
-            // // else the load is between the supports
-            // else pass
-
-            this.a = this.x - this.beam.Lcant    
-            this.b = this.beam.L_btwn_supports - this.a
-            this.rxn_left = (this.p * this.b) / (this.beam.L) // untested
-            this.rxn_right = (this.p * this.a) / (this.beam.L) // untested
-
-            // this.beam.addPointLoad(this)
-        }
-
-        get reactionsFromSinglePointLoad() {
-            this.a = this.startLocation - this.beam.Lcant;
-            this.b = this.beam.L_btwn_supports - this.a;
-
-            return {
-                left: (this.startMagnitude * this.b) / (this.beam.L),
-                right: (this.startMagnitude * this.a) / (this.beam.L)
-            };
-        }
-
-
-        // get arrowHeight() {
-        //     return this._carname;
-        // }
-        // set arrowHeight(x) {
-        //     this._carname = x;
-        // }
-    }
-    class Dist {
-        constructor(color, startMagnitude, startLocation, endLocation, endMagnitude=null) {
-            this.color = color;
-            this.startMagnitude = startMagnitude;
-            this.startLocation = startLocation;
-            this.endLocation = endLocation;
-            this.endMagnitude = endMagnitude;
-        }
-    }
-
-    function define_userData(mesh, type, color, index, tickIndex=null) {
-        // define og_color and highlighted color
-        mesh.userData.index = index
-        mesh.userData.type = type
-        mesh.userData.og_color = color;
-        mesh.userData.highlight_color = new THREE.Color(mesh.userData.og_color);
-        mesh.userData.highlight_color.lerp(clickColor, .5);
-        mesh.userData.tickIndex = tickIndex;
-    }
+    {% block modelClasses %} {% endblock modelClasses %}
 
     const pointer = new THREE.Vector2();
     const mouse = new THREE.Vector2();
@@ -388,9 +118,6 @@
 
         } );
 
-        //set beam length
-        // const txt = document.createTextNode({{ beam_object.L }})
-        // document.getElementById('beamLen').appendChild(txt)
 
         // There's no reason to set the aspect here because we're going
         // to set it every frame anyway so we'll set it to 2 since 2
@@ -484,6 +211,22 @@
         canvas.addEventListener( 'click', onClick );
         document.addEventListener('keyup', onKeyUp);
         resizeCanvasToDisplaySize();
+
+        // var target = new THREE.Vector3(10, -20, 20); // create on init
+        // animateVector3(camera.position, target, {
+            
+        //     duration: 5000, 
+            
+        //     easing : TWEEN.Easing.Quadratic.InOut,
+            
+        //     update: function(d) {
+        //         console.log("Updating: " + d);
+        //     },
+            
+        //     callback : function(){
+        //         console.log("Completed");
+        //     }
+        // });
         // initGui();
 
         // const gui = new GUI();
@@ -504,6 +247,57 @@
             beam.L = val;
 
         } );
+    }
+
+    function switchCamera() {
+        animateVector3(camera.position, profileCamPos, {
+            
+            duration: 2000, 
+            
+            easing : TWEEN.Easing.Quadratic.InOut,
+            
+            update: function(d) {
+                console.log("Updating: " + d);
+            },
+            
+            callback : function(){
+                console.log("Completed");
+            }
+        });
+    }
+
+    function animateVector3(vectorToAnimate, target, options){
+        options = options || {};
+        // get targets from options or set to defaults
+        var to = target || THREE.Vector3(),
+            easing = options.easing || TWEEN.Easing.Quadratic.In,
+            duration = options.duration || 2000;
+        // create the tween
+        var tweenVector3 = new TWEEN.Tween(vectorToAnimate)
+            .to({ x: to.x, y: to.y, z: to.z, }, duration)
+            .easing(easing)
+            .onUpdate(function(d) {
+                if(options.update){ 
+                    options.update(d);
+                }
+            })
+            .onComplete(function(){
+            if(options.callback) options.callback();
+            });
+        // start the tween
+        tweenVector3.start();
+        // return the tween in case we want to manipulate it later on
+        return tweenVector3;
+    }
+
+    function define_userData(mesh, type, color, index, tickIndex=null) {
+        // define og_color and highlighted color
+        mesh.userData.index = index
+        mesh.userData.type = type
+        mesh.userData.og_color = color;
+        mesh.userData.highlight_color = new THREE.Color(mesh.userData.og_color);
+        mesh.userData.highlight_color.lerp(clickColor, .5);
+        mesh.userData.tickIndex = tickIndex;
     }
 
     function set_max_point_load(beam) {
@@ -682,12 +476,16 @@
             console.log('tab');
         } else if (event.code === 'Slash') {
             console.log('/');
+            console.log(camera.position);
+            switchCamera();
         }
     }
 
     function animate() {
 
         requestAnimationFrame( animate );
+
+        TWEEN.update();
 
         //controls.update(); // only required if controls.enableDamping = true, or if controls.autoRotate = true
 
@@ -727,132 +525,7 @@
 
     }
 
-    $(".load-table-input").focusout(function (e) {
-        e.preventDefault();
-        const attributeArray = e.target.id.split("-");
-        
-        if (attributeArray[0] == 'Point') {
-            var load = beam.PLs.at(attributeArray[2])
-            var loadType = 'point'
-        } else if (attributeArray[0] == 'Distributed') {
-            var load = beam.DLs.at(attributeArray[2])
-            var loadType = 'distributed'
-        } else {
-
-        }
-
-        if (attributeArray[1] == 'Index') {
-            
-        } else if (attributeArray[1] == 'startMagnitude') {
-            load.startMagnitude = parseFloat(e.target.value);
-        } else if (attributeArray[1] == 'endMagnitude') {
-            load.endMagnitude = parseFloat(e.target.value);
-        } else if (attributeArray[1] == 'startLocation') {
-            load.startLocation = parseFloat(e.target.value);
-        } else if (attributeArray[1] == 'endLocation') {
-            load.endLocation = parseFloat(e.target.value);
-        }
-
-        beam.drawLoad(load)
-        resizeCanvasToDisplaySize()
-        // GET AJAX request
-        $.ajax({
-            type: 'POST',
-            url: "{% url 'update_point_load' %}",
-            data: {
-                "loadType": loadType,
-                "startMagnitude": load.startMagnitude,
-                'startLocation': load.startLocation,
-                "endMagnitude": load.endMagnitude,
-                'endLocation': load.endLocation,
-                'index': load.index,
-                'L': beam.L,
-            },
-            success: function (response) {
-
-            },
-            error: function (response) {
-            }
-        })
-
-    });
-
-    $("#form-startLocation").focusout(function (e) {
-        const loadType = 'point'
-        if ($("#form-startMagnitude").val() == '') {
-            console.log('no mag')
-            return
-        } else if (e.target.value == '') {
-            console.log('no loc')
-            return
-        }
-
-        beam.defineLoad($("#form-startMagnitude").val(), e.target.value)
-
-        var load = beam.PLs.at(-1);
-        beam.drawLoad(load)
-        
-        // GET AJAX request
-        $.ajax({
-            type: 'POST',
-            url: "{% url 'update_point_load' %}",
-            data: {
-                "loadType": loadType,
-                "startMagnitude": load.startMagnitude,
-                'startLocation': load.startLocation,
-                'index': load.index,
-                'L': beam.L,
-            },
-            success: function (response) {
-                console.log(response)
-                var newrow = $(`<tr>
-                                    <td class="sorting_1 nopadding">
-                                        <input id="Point-Index-` + load.index + `" class="form-control form-control-sm bg-transparent border-transparent load-table-input numberinput" value= ` + load.index + ` onfocus="this.select();">
-                                    </td>
-                                    <td class="nopadding">
-                                        <input id="Point-Magnitude-` + load.index + `" class="form-control form-control-sm bg-transparent border-transparent load-table-input numberinput" value= ` + load.startMagnitude + ` onfocus="this.select();">
-                                    </td>
-                                    <td class="nopadding">
-                                        <input id="Point-Location-` + load.index + `" class="form-control form-control-sm bg-transparent border-transparent load-table-input numberinput" value= ` + load.startLocation + ` onfocus="this.select();">
-                                    </td>
-                                </tr>`);
-                newrow.insertBefore(e.target.closest('tr'));
-                $("#form-index").val('');
-                $('#form-startMagnitude').val('');
-                $('#form-startMagnitude').focus();
-                $('#form-startLocation').val('');
-            },
-            error: function (response) {
-                console.log('error')
-            }
-        })
-    });
-
-    $(".model-input").focusout(function (e) {
-        e.preventDefault();
-
-        beam.L = e.target.innerHTML;
-
-        $.ajax({
-            type: 'POST',
-            url: "{% url 'update_model' %}",
-            data: {
-                "L": beam.L,
-            },
-            success: function (response) {
-                beam.set_length()
-                resizeCanvasToDisplaySize();
-                console.log('success')
-            },
-            error: function (response) {
-                console.log('failure')
-            }
-        })
-    });
-
-    $("#sectionSelect").change(function () {
-        changeDeflectionData();
-    });
+    {% block ajaxRequests %} {% endblock ajaxRequests %}
 
 </script>
 

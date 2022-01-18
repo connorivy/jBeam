@@ -66,6 +66,9 @@ def get_diagrams(request):
         distributed_loads = distributedLoad.objects.all()
         user_beam = jBeamObject.objects.first()
 
+        # get determinacy
+        
+
         calc_beam = beam(user_beam.L, x0 = 0)
         for pl in point_loads:
             calc_beam.add_point_load(pl.startLocation, pl.startMagnitude)

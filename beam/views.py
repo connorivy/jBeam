@@ -19,6 +19,6 @@ def configure(request):
         'distributed_loads': distributedLoad.objects.all(),
         'beam_object': jBeamObject.objects.first(),
     }
-    return render(request, 'beam/pagetables.html', context)
+    return render(request, 'beam/modelclasses.html', context)
 
 

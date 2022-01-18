@@ -1,0 +1,132 @@
+{% extends "beam/pagetables.html" %}
+{% load static %}
+{% block ajaxRequests %}
+
+$(".load-table-input").focusout(function (e) {
+    e.preventDefault();
+    const attributeArray = e.target.id.split("-");
+    
+    if (attributeArray[0] == 'Point') {
+        var load = beam.PLs.at(attributeArray[2])
+        var loadType = 'point'
+    } else if (attributeArray[0] == 'Distributed') {
+        var load = beam.DLs.at(attributeArray[2])
+        var loadType = 'distributed'
+    } else {
+
+    }
+
+    if (attributeArray[1] == 'Index') {
+        
+    } else if (attributeArray[1] == 'startMagnitude') {
+        load.startMagnitude = parseFloat(e.target.value);
+    } else if (attributeArray[1] == 'endMagnitude') {
+        load.endMagnitude = parseFloat(e.target.value);
+    } else if (attributeArray[1] == 'startLocation') {
+        load.startLocation = parseFloat(e.target.value);
+    } else if (attributeArray[1] == 'endLocation') {
+        load.endLocation = parseFloat(e.target.value);
+    }
+
+    beam.drawLoad(load)
+    resizeCanvasToDisplaySize()
+    // GET AJAX request
+    $.ajax({
+        type: 'POST',
+        url: "{% url 'update_point_load' %}",
+        data: {
+            "loadType": loadType,
+            "startMagnitude": load.startMagnitude,
+            'startLocation': load.startLocation,
+            "endMagnitude": load.endMagnitude,
+            'endLocation': load.endLocation,
+            'index': load.index,
+            'L': beam.L,
+        },
+        success: function (response) {
+
+        },
+        error: function (response) {
+        }
+    })
+
+});
+
+$("#form-startLocation").focusout(function (e) {
+    const loadType = 'point'
+    if ($("#form-startMagnitude").val() == '') {
+        console.log('no mag')
+        return
+    } else if (e.target.value == '') {
+        console.log('no loc')
+        return
+    }
+
+    beam.defineLoad($("#form-startMagnitude").val(), e.target.value)
+
+    var load = beam.PLs.at(-1);
+    beam.drawLoad(load)
+    
+    // GET AJAX request
+    $.ajax({
+        type: 'POST',
+        url: "{% url 'update_point_load' %}",
+        data: {
+            "loadType": loadType,
+            "startMagnitude": load.startMagnitude,
+            'startLocation': load.startLocation,
+            'index': load.index,
+            'L': beam.L,
+        },
+        success: function (response) {
+            console.log(response)
+            var newrow = $(`<tr>
+                                <td class="sorting_1 nopadding">
+                                    <input id="Point-Index-` + load.index + `" class="form-control form-control-sm bg-transparent border-transparent load-table-input numberinput" value= ` + load.index + ` onfocus="this.select();">
+                                </td>
+                                <td class="nopadding">
+                                    <input id="Point-Magnitude-` + load.index + `" class="form-control form-control-sm bg-transparent border-transparent load-table-input numberinput" value= ` + load.startMagnitude + ` onfocus="this.select();">
+                                </td>
+                                <td class="nopadding">
+                                    <input id="Point-Location-` + load.index + `" class="form-control form-control-sm bg-transparent border-transparent load-table-input numberinput" value= ` + load.startLocation + ` onfocus="this.select();">
+                                </td>
+                            </tr>`);
+            newrow.insertBefore(e.target.closest('tr'));
+            $("#form-index").val('');
+            $('#form-startMagnitude').val('');
+            $('#form-startMagnitude').focus();
+            $('#form-startLocation').val('');
+        },
+        error: function (response) {
+            console.log('error')
+        }
+    })
+});
+
+$(".model-input").focusout(function (e) {
+    e.preventDefault();
+
+    beam.L = e.target.innerHTML;
+
+    $.ajax({
+        type: 'POST',
+        url: "{% url 'update_model' %}",
+        data: {
+            "L": beam.L,
+        },
+        success: function (response) {
+            beam.set_length()
+            resizeCanvasToDisplaySize();
+            console.log('success')
+        },
+        error: function (response) {
+            console.log('failure')
+        }
+    })
+});
+
+$("#sectionSelect").change(function () {
+    changeDeflectionData();
+});
+
+{% endblock ajaxRequests %}

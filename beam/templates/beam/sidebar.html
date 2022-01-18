@@ -382,7 +382,8 @@
             ]
         };
 
-        var deflection_value_pairs = changeDeflectionData(dataInput["deflection_value_pairs"]);
+        changeDeflectionData(dataInput["deflection_value_pairs"]);
+        changeDeflectionData(dataInput["max_deflection_value_pairs"])
 
         const deflectionData = {
             labels: '',
@@ -392,21 +393,21 @@
                     pointRadius: 0,
                     pointHitRadius: 0,
                     borderColor: "rgba(33, 166, 81,1)",
-                    data: deflection_value_pairs,
+                    data: dataInput["deflection_value_pairs"],
                     // data: deflection_value_pairs,
                     order: 2,
                 },
-                // {
-                //     fill: false,
-                //     pointRadius: 6,
-                //     pointHitRadius: 10,
-                //     borderColor: "rgba(33, 166, 81,1)",
-                //     borderWidth: 3,
-                //     backgroundColor: "rgba(255,255,255,1)",
-                //     data: dataInput["max_deflection_value_pairs"],
-                //     order: 1,
-                //     showLine: false,
-                // },
+                {
+                    fill: false,
+                    pointRadius: 6,
+                    pointHitRadius: 10,
+                    borderColor: "rgba(33, 166, 81,1)",
+                    borderWidth: 3,
+                    backgroundColor: "rgba(255,255,255,1)",
+                    data: dataInput["max_deflection_value_pairs"],
+                    order: 1,
+                    showLine: false,
+                },
                 {
                     fill: true,
                     pointRadius: 0,
