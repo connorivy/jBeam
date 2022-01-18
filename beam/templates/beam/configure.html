@@ -32,7 +32,10 @@
     let cylThickness = .5;
     let gui;
     let initialCamPos = new THREE.Vector3(4,-790,4);
-    let profileCamPos = new THREE.Vector3(-700,0,0);
+    let profileCamPos = new THREE.Vector3(0,0,2273);
+    let initialCamRot = new THREE.Vector3(Math.PI / 2,0,0);
+    let profileCamRot = new THREE.Vector3(0,0,Math.PI / 2);
+    let multiplier;
     // let initialCamPos = new THREE.Vector3(-313,-945,169);
 
     let axisY = -24;
@@ -105,9 +108,9 @@
             model.traverse((o) => {
                 if (o.isMesh) o.material = metal;
             });
-            model.rotation.x = Math.PI / 2
+            model.rotation.x = Math.PI / 2;
             // model.rotation.y = 9/16 * Math.PI
-            model.rotation.y = Math.PI / 2
+            model.rotation.y = Math.PI / 2;
 
             // model.scale(new THREE.Vector3(3,1,1))
 
@@ -123,14 +126,15 @@
         // to set it every frame anyway so we'll set it to 2 since 2
         // is the the aspect for the canvas default size (300w/150h = 2)
         camera = new THREE.PerspectiveCamera(5.5, 2, 1, 5000);
-        camera.up = new THREE.Vector3( 0, 0, 1 );   
+        camera.up = new THREE.Vector3( 0, 0, 1 );  
+        camera.rotation.set(initialCamRot);
         camera.position.set( initialCamPos.x, initialCamPos.y, initialCamPos.z );
 
         var controls = new MapControls(camera, renderer.domElement);
         controls.screenSpacePanning = true;
         controls.enablePan = true;
 
-        controls.maxPolarAngle = Math.PI / 2;
+        // controls.maxPolarAngle = Math.PI / 2;
         controls.mouseButtons = {MIDDLE: THREE.MOUSE.RIGHT, RIGHT: THREE.MOUSE.RIGHT};
 
 
@@ -212,21 +216,6 @@
         document.addEventListener('keyup', onKeyUp);
         resizeCanvasToDisplaySize();
 
-        // var target = new THREE.Vector3(10, -20, 20); // create on init
-        // animateVector3(camera.position, target, {
-            
-        //     duration: 5000, 
-            
-        //     easing : TWEEN.Easing.Quadratic.InOut,
-            
-        //     update: function(d) {
-        //         console.log("Updating: " + d);
-        //     },
-            
-        //     callback : function(){
-        //         console.log("Completed");
-        //     }
-        // });
         // initGui();
 
         // const gui = new GUI();
@@ -250,14 +239,17 @@
     }
 
     function switchCamera() {
-        animateVector3(camera.position, profileCamPos, {
+        animateVector3(camera.position, profileCamPos, camera.rotation, profileCamRot, {
             
-            duration: 2000, 
+            duration: 1000, 
             
-            easing : TWEEN.Easing.Quadratic.InOut,
+            easing : TWEEN.Easing.Quintic.Out,
             
             update: function(d) {
-                console.log("Updating: " + d);
+                camera.lookAt(multiplier*initialCamPos.x, 0, multiplier*initialCamPos.z);
+                // console.log("Updating: " + d);
+                console.log(camera.position)
+                // console.log(camera.rotation)
             },
             
             callback : function(){
@@ -266,15 +258,21 @@
         });
     }
 
-    function animateVector3(vectorToAnimate, target, options){
+    function animateVector3(camPosition, posTarget, camRotation, rotTarget, options){
         options = options || {};
         // get targets from options or set to defaults
-        var to = target || THREE.Vector3(),
+        var posTo = posTarget || THREE.Vector3(),
             easing = options.easing || TWEEN.Easing.Quadratic.In,
             duration = options.duration || 2000;
-        // create the tween
-        var tweenVector3 = new TWEEN.Tween(vectorToAnimate)
-            .to({ x: to.x, y: to.y, z: to.z, }, duration)
+
+        // // get targets from options or set to defaults
+        // var rotTo = rotTarget || THREE.Vector3(),
+        //     easing = options.easing || TWEEN.Easing.Quadratic.In,
+        //     duration = options.duration || 2000;
+
+        // tween camera position
+        var tweenCameraPosition = new TWEEN.Tween(camPosition)
+            .to({ x: posTo.x, y: posTo.y, z: posTo.z, }, duration)
             .easing(easing)
             .onUpdate(function(d) {
                 if(options.update){ 
@@ -284,10 +282,26 @@
             .onComplete(function(){
             if(options.callback) options.callback();
             });
+        
+        // // tween camera rotation
+        // var tweenCameraRotation = new TWEEN.Tween(camRotation)
+        //     .to({ x: rotTo.x, y: rotTo.y, z: rotTo.z, }, duration)
+        //     .easing(easing)
+        //     .onUpdate(function(d) {
+        //         if(options.update){ 
+        //             options.update(d);
+        //         }
+        //     })
+        //     .onComplete(function(){
+        //     if(options.callback) options.callback();
+        //     });
+
         // start the tween
-        tweenVector3.start();
+        tweenCameraPosition.start();
+        // tweenCameraRotation.start();
+
         // return the tween in case we want to manipulate it later on
-        return tweenVector3;
+        return tweenCameraPosition;
     }
 
     function define_userData(mesh, type, color, index, tickIndex=null) {
@@ -397,9 +411,10 @@
 
             var dist = Math.max(dist_for_height, dist_for_width)
 
-            var multiplier = dist / Math.sqrt(initialCamPos.x*initialCamPos.x+initialCamPos.y*initialCamPos.y+initialCamPos.z*initialCamPos.z) // I'm essentially linearly interpolating the camera on this line
+            multiplier = dist / Math.sqrt(initialCamPos.x*initialCamPos.x+initialCamPos.y*initialCamPos.y+initialCamPos.z*initialCamPos.z) // I'm essentially linearly interpolating the camera on this line
             camera.position.set( initialCamPos.x*multiplier, initialCamPos.y*multiplier, initialCamPos.z*multiplier );
             camera.lookAt(initialCamPos.x*multiplier, 0, initialCamPos.z*multiplier);
+            camera.rotation.set(initialCamRot.x, initialCamRot.y, initialCamRot.z);
 
             // set matLine resolution
             lineMat.resolution.set( width, height );
@@ -476,8 +491,11 @@
             console.log('tab');
         } else if (event.code === 'Slash') {
             console.log('/');
-            console.log(camera.position);
             switchCamera();
+        } else if (event.code === 'KeyP') {
+            console.log(camera.position);
+            console.log(camera.rotation);
+            console.log(camera.up);
         }
     }
 
