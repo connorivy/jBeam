@@ -32,9 +32,12 @@
     let cylThickness = .5;
     let gui;
     let initialCamPos = new THREE.Vector3(4,-790,4);
-    let profileCamPos = new THREE.Vector3(0,0,2273);
+    // let profileCamPos = new THREE.Vector3(0,0,2273); // this one is to view the trib use quintic.Out for ease setting and 1 for duration
+    let profileCamPos = new THREE.Vector3(-700,0,0);
     let initialCamRot = new THREE.Vector3(Math.PI / 2,0,0);
     let profileCamRot = new THREE.Vector3(0,0,Math.PI / 2);
+    let clippingPlane;
+    let hiddenMetal;
     let multiplier;
     // let initialCamPos = new THREE.Vector3(-313,-945,169);
 
@@ -87,30 +90,78 @@
         const canvas = document.querySelector("#threejs-container canvas");
 
         renderer = new THREE.WebGLRenderer( { canvas: canvas, antialias: true } );
+        renderer.localClippingEnabled = true;
+
+        // create clipping plane at x = 120
+        clippingPlane = new THREE.Plane( new THREE.Vector3( -1, 0, 0), 120 );
+        // console.log(clippingPlane)
 
         const loader = new GLTFLoader();
         loader.load("{% static 'beam/scene.gltf' %}", function(gltf) {
-            var model = gltf.scene
+            var model = gltf.scene;
             var metal = new THREE.MeshStandardMaterial( {
-
                 color: 0xffffff,
-
                 roughness: .8,
                 metalness: 1,
-
-                // roughnessMap: roughnessMap,
-                // metalnessMap: metalnessMap,
-
-                // envMap: envMap, // important -- especially for metals!
-                // envMapIntensity: envMapIntensity
-
+                clippingPlanes: [ clippingPlane ],
             } );
             model.traverse((o) => {
                 if (o.isMesh) o.material = metal;
             });
             model.rotation.x = Math.PI / 2;
-            // model.rotation.y = 9/16 * Math.PI
             model.rotation.y = Math.PI / 2;
+
+            // model.scale(new THREE.Vector3(3,1,1))
+
+            scene.add(model)
+        }, undefined, function ( error ) {
+
+            console.error( error );
+
+        } );
+
+        loader.load("{% static 'beam/scene.gltf' %}", function(gltf) {
+            var model = gltf.scene;
+            hiddenMetal = new THREE.MeshStandardMaterial( {
+                transparent: true,
+                color: 0xffffff,
+                opacity: 0,
+                roughness: .8,
+                metalness: 1,
+                clippingPlanes: [ clippingPlane ],
+            } );
+            model.traverse((o) => {
+                if (o.isMesh) o.material = hiddenMetal;
+            });
+            model.rotation.x = Math.PI / 2;
+            model.rotation.y = Math.PI / 2;
+            model.position.y = 40;
+
+            // model.scale(new THREE.Vector3(3,1,1))
+
+            scene.add(model)
+            console.log(model)
+        }, undefined, function ( error ) {
+
+            console.error( error );
+
+        } );
+
+        loader.load("{% static 'beam/scene.gltf' %}", function(gltf) {
+            var model = gltf.scene;
+            // hiddenMetal = new THREE.MeshStandardMaterial( {
+            //     color: 0xffffff,
+            //     opacity: 0,
+            //     roughness: .8,
+            //     metalness: 1,
+            //     clippingPlanes: [ clippingPlane ],
+            // } );
+            model.traverse((o) => {
+                if (o.isMesh) o.material = hiddenMetal;
+            });
+            model.rotation.x = Math.PI / 2;
+            model.rotation.y = Math.PI / 2;
+            model.position.y = -40;
 
             // model.scale(new THREE.Vector3(3,1,1))
 
@@ -139,6 +190,23 @@
 
 
         // scene.add(new THREE.GridHelper(1000, 100));
+        // add x axis to scene
+
+        // setup for creating a tick on the x axis
+        lineMats.push(new LineMaterial( {
+            color: 0xbbbbbb,
+            linewidth: 3, // in pixels
+            vertexColors: false,
+            //resolution:  // to be set by renderer, eventually
+            dashed: false,
+            alphaToCoverage: true,
+        } ));
+
+        scene.add(drawLine([[-100,0,axisY+axisHeight],[-100, 0, axisY-axisHeight]], lineMats.at(-1)));
+        scene.add(drawLine([[100,0,axisY+axisHeight],[100, 0, axisY-axisHeight]], lineMats.at(-1)));
+        scene.add(drawLine([[-100,0,axisY],[110, 0, axisY]], lineMats.at(-1)));
+        scene.add(drawLine([[110,0,axisY],[106, 0, axisY+axisHeight-1]], lineMats.at(-1)));
+        scene.add(drawLine([[110,0,axisY],[106, 0, axisY-axisHeight+1]], lineMats.at(-1)));
 
         // Beam(L, E, I, A, Lcant, Rcant, left_support_type, right_support_type)
         beam = new Beam({{ beam_object.L }}, 29000, 2900, 16, 0, 0, 'pin', 'pin');
@@ -150,47 +218,15 @@
         {% endfor %}
 
         {% for dl in distributed_loads %}
-        beam.defineLoad({{ dl.startMagnitude }}, {{ dl.startLocation}}, {{ dl.endLocation }}, {{ dl.endMagnitude }})
+        beam.defineLoad({{ dl.startMagnitude }}, {{ dl.startLocation }}, {{ dl.endLocation }}, {{ dl.endMagnitude }})
         beam.drawLoad(beam.DLs.at(-1))
         {% endfor %}
 
-        
-        // materials
-        lineMat = new LineMaterial( {
-            color: 0xdddddd,
-            linewidth: 3, // in pixels
-            vertexColors: false,
-            //resolution:  // to be set by renderer, eventually
-            dashed: false,
-            alphaToCoverage: true,
-        } );
+        {% for support in supports %}
+        beam.defineSupport({{ support.location }}, "{{ support.type }}")
+        beam.drawSupport(beam.supports.at(-1))
+        {% endfor %}
 
-        drawLine([[-100,0,axisY+axisHeight],[-100, 0, axisY-axisHeight]]);
-        drawLine([[100,0,axisY+axisHeight],[100, 0, axisY-axisHeight]]);
-        drawLine([[-100,0,axisY],[110, 0, axisY]]);
-        drawLine([[110,0,axisY],[106, 0, axisY+axisHeight-1]]);
-        drawLine([[110,0,axisY],[106, 0, axisY-axisHeight+1]]);
-
-        // world
-
-        const geometry = new THREE.ConeGeometry( 5, 10, 25 );
-        const material = new THREE.MeshStandardMaterial( {color: 0x00ff00, metalness: 0.5, roughness: 0.5,} );
-        var cylinder = new THREE.Mesh( geometry, material );
-        define_userData(cylinder, 'support', cylinder.material.color.getHex(), 0);
-        cylinder.position.x = -100
-        cylinder.position.z = -12
-        cylinder.rotation.x = Math.PI / 2;
-        cylinder.rotation.y = Math.PI / 8;
-        scene.add( cylinder );
-
-        const material2 = new THREE.MeshStandardMaterial( {color: 0x00ff00, metalness: 0.5, roughness: 0.5,} );
-        var cylinder2 = new THREE.Mesh( geometry, material2 );
-        define_userData(cylinder2, 'support', cylinder2.material.color.getHex(), 1);
-        cylinder2.position.x = 100
-        cylinder2.position.z = -13
-        cylinder2.rotation.x = Math.PI / 2;
-        cylinder2.rotation.y = Math.PI / 8;
-        scene.add( cylinder2 );
 
         // lights
 
@@ -239,40 +275,185 @@
     }
 
     function switchCamera() {
-        animateVector3(camera.position, profileCamPos, camera.rotation, profileCamRot, {
-            
-            duration: 1000, 
-            
-            easing : TWEEN.Easing.Quintic.Out,
-            
+        // loop through point load meshes and animate them all to transparent
+        for (var i=0; i<beam.PLs.length; i++) {
+            beam.PLs[i].mesh.material.transparent = true;
+            animateObject(beam.PLs[i].mesh.material, { opacity: 0 }, {
+                duration: 250,
+                update: function(d) {
+                    
+                },
+            });
+        }
+        // loop through distributed load meshes and animate them all to transparent
+        for (var i=0; i<beam.DLs.length; i++) {
+            beam.DLs[i].mesh.material.transparent = true;
+            animateObject(beam.DLs[i].mesh.material, { opacity: 0 }, {
+                duration: 250,
+                update: function(d) {
+                    
+                },
+            });
+        }
+        // loop through support meshes and animate them all to transparent
+        for (var i=0; i<beam.supports.length; i++) {
+            beam.supports[i].mesh.material.transparent = true;
+            animateObject(beam.supports[i].mesh.material, { opacity: 0 }, {
+                duration: 250,
+                update: function(d) {
+                    
+                },
+            });
+        }
+        // make surrounding beams opaque
+        animateObject(hiddenMetal, { opacity: .3 }, {
+            duration: 250, 
+            easing : TWEEN.Easing.Linear.None,
+            update: function(d) { },
+            callback : function(){ }
+        });
+
+        // move clipping Plane so only small depth of beam can be seen
+        animateObject(clippingPlane, { constant: -95 }, {
+            duration: 800, 
+            easing : TWEEN.Easing.Quintic.In,
+            update: function(d) { },
+            callback : function(){ }
+        });
+
+        animateObject(camera.position, { x: profileCamPos.x, z: profileCamPos.z, }, {
+            duration: 800, 
+            easing : TWEEN.Easing.Linear.None,
+            update: function(d) {
+                // camera.lookAt(multiplier*initialCamPos.x, 0, multiplier*initialCamPos.z);
+            },
+            callback : function(){
+                console.log("Completed");
+            }
+        });
+
+        animateObject(camera.position, { y: profileCamPos.y }, {
+            duration: 800, 
+            easing : TWEEN.Easing.Sinusoidal.In,
             update: function(d) {
                 camera.lookAt(multiplier*initialCamPos.x, 0, multiplier*initialCamPos.z);
-                // console.log("Updating: " + d);
-                console.log(camera.position)
-                // console.log(camera.rotation)
             },
-            
             callback : function(){
                 console.log("Completed");
             }
         });
     }
 
-    function animateVector3(camPosition, posTarget, camRotation, rotTarget, options){
+    // function animateCamera(camPosition, posTarget, camRotation, rotTarget, options){
+    //     options = options || {};
+    //     // get targets from options or set to defaults
+    //     var posTo = posTarget || THREE.Vector3(),
+    //         easing = options.easing || TWEEN.Easing.Quadratic.In,
+    //         duration = options.duration || 2000;
+
+    //     // // get targets from options or set to defaults
+    //     // var rotTo = rotTarget || THREE.Vector3(),
+    //     //     easing = options.easing || TWEEN.Easing.Quadratic.In,
+    //     //     duration = options.duration || 2000;
+
+    //     // tween camera position
+    //     var tweenCameraPosition = new TWEEN.Tween(camPosition)
+    //         .to({ x: posTo.x, y: posTo.y, z: posTo.z, }, duration)
+    //         .easing(easing)
+    //         .onUpdate(function(d) {
+    //             if(options.update){ 
+    //                 options.update(d);
+    //             }
+    //         })
+    //         .onComplete(function(){
+    //         if(options.callback) options.callback();
+    //         });
+        
+    //     // // tween camera rotation
+    //     // var tweenCameraRotation = new TWEEN.Tween(camRotation)
+    //     //     .to({ x: rotTo.x, y: rotTo.y, z: rotTo.z, }, duration)
+    //     //     .easing(easing)
+    //     //     .onUpdate(function(d) {
+    //     //         if(options.update){ 
+    //     //             options.update(d);
+    //     //         }
+    //     //     })
+    //     //     .onComplete(function(){
+    //     //     if(options.callback) options.callback();
+    //     //     });
+
+    //     // start the tween
+    //     tweenCameraPosition.start();
+    //     // tweenCameraRotation.start();
+
+    //     // return the tween in case we want to manipulate it later on
+    //     return tweenCameraPosition;
+    // }
+
+    // function animateMaterialColor(material, opacityTarget, options){
+    //     options = options || {};
+
+    //     // get targets from options or set to defaults
+    //     var opacityTo = opacityTarget,
+    //         easing = options.easing || TWEEN.Easing.Quadratic.In,
+    //         duration = options.duration || 2000;
+
+    //     // tween camera position
+    //     var tweenMeshColor = new TWEEN.Tween(material)
+    //         .to({ opacity: opacityTo }, duration)
+    //         .easing(easing)
+    //         .onUpdate(function(d) {
+    //             if(options.update){ 
+    //                 options.update(d);
+    //             }
+    //         })
+    //         .onComplete(function(){
+    //         if(options.callback) options.callback();
+    //         });
+
+    //     // start the tween
+    //     tweenMeshColor.start();
+
+    //     return tweenMeshColor;
+    // }
+
+    // function animateClippingPlane(planeLocation, locationTarget, options){
+    //     options = options || {};
+
+    //     // get targets from options or set to defaults
+    //     var location = locationTarget,
+    //         easing = options.easing || TWEEN.Easing.Quadratic.In,
+    //         duration = options.duration || 2000;
+
+    //     // tween camera position
+    //     var tweenClippingPlane = new TWEEN.Tween(planeLocation)
+    //         .to({ constant: location }, duration)
+    //         .easing(easing)
+    //         .onUpdate(function(d) {
+    //             if(options.update){ 
+    //                 options.update(d);
+    //             }
+    //         })
+    //         .onComplete(function(){
+    //         if(options.callback) options.callback();
+    //         });
+
+    //     // start the tween
+    //     tweenClippingPlane.start();
+
+    //     return tweenClippingPlane;
+    // }
+
+    function animateObject(object, targets, options){
         options = options || {};
+
         // get targets from options or set to defaults
-        var posTo = posTarget || THREE.Vector3(),
-            easing = options.easing || TWEEN.Easing.Quadratic.In,
+        var easing = options.easing || TWEEN.Easing.Quadratic.In,
             duration = options.duration || 2000;
 
-        // // get targets from options or set to defaults
-        // var rotTo = rotTarget || THREE.Vector3(),
-        //     easing = options.easing || TWEEN.Easing.Quadratic.In,
-        //     duration = options.duration || 2000;
-
         // tween camera position
-        var tweenCameraPosition = new TWEEN.Tween(camPosition)
-            .to({ x: posTo.x, y: posTo.y, z: posTo.z, }, duration)
+        var tween = new TWEEN.Tween(object)
+            .to(targets, duration)
             .easing(easing)
             .onUpdate(function(d) {
                 if(options.update){ 
@@ -280,28 +461,13 @@
                 }
             })
             .onComplete(function(){
-            if(options.callback) options.callback();
+                if(options.callback) options.callback();
             });
-        
-        // // tween camera rotation
-        // var tweenCameraRotation = new TWEEN.Tween(camRotation)
-        //     .to({ x: rotTo.x, y: rotTo.y, z: rotTo.z, }, duration)
-        //     .easing(easing)
-        //     .onUpdate(function(d) {
-        //         if(options.update){ 
-        //             options.update(d);
-        //         }
-        //     })
-        //     .onComplete(function(){
-        //     if(options.callback) options.callback();
-        //     });
 
         // start the tween
-        tweenCameraPosition.start();
-        // tweenCameraRotation.start();
+        tween.start();
 
-        // return the tween in case we want to manipulate it later on
-        return tweenCameraPosition;
+        return tween;
     }
 
     function define_userData(mesh, type, color, index, tickIndex=null) {
@@ -368,6 +534,7 @@
         // lineMat.color.set(color);
 
         var line = new Line2( lineGeo, material );
+        line.userData.line = true;
         line.computeLineDistances();
         line.scale.set( 1, 1, 1 );
 
@@ -415,10 +582,6 @@
             camera.position.set( initialCamPos.x*multiplier, initialCamPos.y*multiplier, initialCamPos.z*multiplier );
             camera.lookAt(initialCamPos.x*multiplier, 0, initialCamPos.z*multiplier);
             camera.rotation.set(initialCamRot.x, initialCamRot.y, initialCamRot.z);
-
-            // set matLine resolution
-            lineMat.resolution.set( width, height );
-            console.log(lineMats.length)
 
             //calculate text locations
             var rect = canvas.getBoundingClientRect();

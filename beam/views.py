@@ -17,6 +17,7 @@ def configure(request):
         'form': form,
         'point_loads': pointLoad.objects.all(),
         'distributed_loads': distributedLoad.objects.all(),
+        'supports': support.objects.all(),
         'beam_object': jBeamObject.objects.first(),
     }
     return render(request, 'beam/modelclasses.html', context)

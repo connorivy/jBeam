@@ -32,6 +32,7 @@ class Beam {
         this.left_support_type = right_support_type;
         this.PLs = [];
         this.DLs = [];
+        this.supports = [];
         this.POIs = [];
         this.clickColor = new THREE.Color(0x0000ff);
         this.maxPL = 0;
@@ -84,6 +85,44 @@ class Beam {
         load.arrowMat = new THREE.MeshBasicMaterial( {color: load.color} );
     }
 
+    defineSupport(location, type) {
+        var support = new Support(location, type);
+        this.supports.push(support);
+
+        if (support.type == 'pin') {
+            support.geometry = new THREE.ConeGeometry( 5, 10, 25 );
+            support.material = new THREE.MeshBasicMaterial( {color: 0x00ff00} );
+        }
+    }
+
+    drawSupport(support) {
+        support.mesh = new THREE.Mesh( support.geometry, support.material );
+        support.locationOnCanvas = support.location / this.L * 200 - 100;
+
+        // setup for creating a tick on the x axis
+        lineMats.push(new LineMaterial( {
+            color: 0x000000,
+            linewidth: 3, // in pixels
+            vertexColors: false,
+            //resolution:  // to be set by renderer, eventually
+            dashed: false,
+            alphaToCoverage: true,
+        } ));
+        const line = drawLine([[support.locationOnCanvas,0,axisY+axisHeight],[support.locationOnCanvas, 0, axisY-axisHeight]], lineMats.at(-1));
+        line.userData.line = true;
+        scene.add(line);
+        // push an array with a single value for the tick mark
+        ticks.push([line]);
+
+        define_userData(support.mesh, 'support', support.mesh.material.color.getHex(), this.supports.length-1, ticks.length-1);
+
+        support.mesh.position.x = support.locationOnCanvas;
+        support.mesh.position.z = -12
+        support.mesh.rotation.x = Math.PI / 2;
+        // support.mesh.rotation.y = Math.PI / 8;
+        scene.add( support.mesh );
+    }
+    
     drawLoad(load) {
         var click = false;
         // if load has already been drawn
@@ -219,43 +258,9 @@ class Point {
         this.color = color;
         this.beam = beam;
         this.type = 'point';
-
-        // // if x is greater then L minus right cantilever, it's on the right cantilever
-        // if (this.x > this.beam.L-this.beam.Rcant) pass
-
-        // // if x less than len(left cantilever), it's on the left cantilever
-        // else if (this.x < this.beam.Lcant)
-        //     pass
-
-        // // else the load is between the supports
-        // else pass
-
-        this.a = this.x - this.beam.Lcant    
-        this.b = this.beam.L_btwn_supports - this.a
-        this.rxn_left = (this.p * this.b) / (this.beam.L) // untested
-        this.rxn_right = (this.p * this.a) / (this.beam.L) // untested
-
-        // this.beam.addPointLoad(this)
     }
-
-    get reactionsFromSinglePointLoad() {
-        this.a = this.startLocation - this.beam.Lcant;
-        this.b = this.beam.L_btwn_supports - this.a;
-
-        return {
-            left: (this.startMagnitude * this.b) / (this.beam.L),
-            right: (this.startMagnitude * this.a) / (this.beam.L)
-        };
-    }
-
-
-    // get arrowHeight() {
-    //     return this._carname;
-    // }
-    // set arrowHeight(x) {
-    //     this._carname = x;
-    // }
 }
+
 class Dist {
     constructor(color, startMagnitude, startLocation, endLocation, endMagnitude=null) {
         this.color = color;
@@ -263,6 +268,12 @@ class Dist {
         this.startLocation = startLocation;
         this.endLocation = endLocation;
         this.endMagnitude = endMagnitude;
+    }
+}
+class Support {
+    constructor(location, type) {
+        this.location = location;
+        this.type = type;
     }
 }
 
