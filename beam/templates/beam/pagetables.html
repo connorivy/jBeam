@@ -188,13 +188,13 @@
                         {% for pl in point_loads %}
                           <tr>
                               <td class="sorting_1 nopadding">
-                                <input id="Point-Index-{{ pl.index }}" class="form-control form-control-sm bg-transparent border-transparent load-table-input numberinput" value= "{{ pl.index }}" onfocus="this.select();">
+                                <input id="point-index-{{ pl.index }}" class="form-control form-control-sm bg-transparent border-transparent load-table-input numberinput" value= "{{ pl.index }}" onfocus="this.select();">
                               </td>
                               <td class="nopadding">
-                                <input id="Point-startMagnitude-{{ pl.index }}" class="form-control form-control-sm bg-transparent border-transparent load-table-input numberinput" value= "{{ pl.startMagnitude }}" onfocus="this.select();">
+                                <input id="point-startMagnitude-{{ pl.index }}" class="form-control form-control-sm bg-transparent border-transparent load-table-input numberinput" value= "{{ pl.startMagnitude }}" onfocus="this.select();">
                               </td>
                               <td class="nopadding">
-                                <input id="Point-startLocation-{{ pl.index }}" class="form-control form-control-sm bg-transparent border-transparent load-table-input numberinput" value= "{{ pl.startLocation }}" onfocus="this.select();">
+                                <input id="point-startLocation-{{ pl.index }}" class="form-control form-control-sm bg-transparent border-transparent load-table-input numberinput" value= "{{ pl.startLocation }}" onfocus="this.select();">
                               </td>
                           </tr>
                         {% endfor %}
@@ -242,19 +242,19 @@
                         {% for dl in distributed_loads %}
                           <tr>
                               <td class="sorting_1 nopadding">
-                                <input id="Distributed-Index-{{ dl.index }}" class="form-control form-control-sm bg-transparent border-transparent load-table-input numberinput" value= "{{ dl.index }}" onfocus="this.select();">
+                                <input id="dist-index-{{ dl.index }}" class="form-control form-control-sm bg-transparent border-transparent load-table-input numberinput" value= "{{ dl.index }}" onfocus="this.select();">
                               </td>
                               <td class="nopadding">
-                                <input id="Distributed-startMagnitude-{{ dl.index }}" class="form-control form-control-sm bg-transparent border-transparent load-table-input numberinput" value= "{{ dl.startMagnitude }}" onfocus="this.select();">
+                                <input id="dist-startMagnitude-{{ dl.index }}" class="form-control form-control-sm bg-transparent border-transparent load-table-input numberinput" value= "{{ dl.startMagnitude }}" onfocus="this.select();">
                               </td>
                               <td class="nopadding">
-                                <input id="Distributed-endMagnitude-{{ dl.index }}" class="form-control form-control-sm bg-transparent border-transparent load-table-input numberinput" value= "{{ dl.endMagnitude }}" onfocus="this.select();">
+                                <input id="dist-endMagnitude-{{ dl.index }}" class="form-control form-control-sm bg-transparent border-transparent load-table-input numberinput" value= "{{ dl.endMagnitude }}" onfocus="this.select();">
                               </td>
                               <td class="nopadding">
-                                <input id="Distributed-startLocation-{{ dl.index }}" class="form-control form-control-sm bg-transparent border-transparent load-table-input numberinput" value= "{{ dl.startLocation }}" onfocus="this.select();">
+                                <input id="dist-startLocation-{{ dl.index }}" class="form-control form-control-sm bg-transparent border-transparent load-table-input numberinput" value= "{{ dl.startLocation }}" onfocus="this.select();">
                               </td>
                               <td class="nopadding">
-                                <input id="Distributed-endLocation-{{ dl.index }}" class="form-control form-control-sm bg-transparent border-transparent load-table-input numberinput" value= "{{ dl.endLocation }}" onfocus="this.select();">
+                                <input id="dist-endLocation-{{ dl.index }}" class="form-control form-control-sm bg-transparent border-transparent load-table-input numberinput" value= "{{ dl.endLocation }}" onfocus="this.select();">
                               </td>
                           </tr>
                         {% endfor %}

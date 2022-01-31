@@ -56,6 +56,10 @@ class Beam {
             load.index = this.DLs.length-1;
             load.type = 'dist';
 
+            // create text box for model end location
+            createModelInput(load.type, 'endLocation', load.index, load.endLocation);
+
+            // campare load magnitude to existing load magnitudes
             if (Math.abs(load.startMagnitude) > this.maxDL) {
                 this.maxDL = Math.abs(load.startMagnitude);
                 load.isMaxDL = true;
@@ -83,16 +87,22 @@ class Beam {
     
         // material
         load.arrowMat = new THREE.MeshBasicMaterial( {color: load.color} );
+
+        // create text boxes for load start location
+        createModelInput(load.type, 'startLocation', load.index, load.startLocation);
     }
 
     defineSupport(location, type) {
         var support = new Support(location, type);
+        support.index = this.supports.length;
         this.supports.push(support);
 
         if (support.type == 'pin') {
             support.geometry = new THREE.ConeGeometry( 5, 10, 25 );
             support.material = new THREE.MeshBasicMaterial( {color: 0x00ff00} );
         }
+
+        createModelInput('support', 'location', support.index, support.location);
     }
 
     drawSupport(support) {
@@ -108,6 +118,7 @@ class Beam {
             dashed: false,
             alphaToCoverage: true,
         } ));
+        console.log(support.locationOnCanvas)
         const line = drawLine([[support.locationOnCanvas,0,axisY+axisHeight],[support.locationOnCanvas, 0, axisY-axisHeight]], lineMats.at(-1));
         line.userData.line = true;
         scene.add(line);
@@ -238,15 +249,18 @@ class Beam {
     }
 
     set_length() {
-        const beamLen = document.getElementById('beamLen')
-        beamLen.innerText = beamLen.textContent = String(this.L);
+        // const beamLen = document.getElementById('beamLen')
+        // beamLen.innerText = beamLen.textContent = String(this.L);
 
         for (var i=0; i<this.PLs.length; i++) {
             this.drawLoad(this.PLs[i])
+            updateModelInputLocation('point', 'startLocation', i, new THREE.Vector3(getThreeJSCoordinate(beam.PLs[i].startLocation), 0, -30));
         }
 
         for (var i=0; i<this.DLs.length; i++) {
             this.drawLoad(this.DLs[i])
+            updateModelInputLocation('dist', 'startLocation', i, new THREE.Vector3(getThreeJSCoordinate(beam.DLs[i].startLocation), 0, -30));
+            updateModelInputLocation('dist', 'endLocation', i, new THREE.Vector3(getThreeJSCoordinate(beam.DLs[i].endLocation), 0, -30));
         }
     }
 }

@@ -19,9 +19,10 @@
     let camera, controls, scene, renderer;
     let stats, gpuPanel;
     let INTERSECTED, CLICKED;
-    let lineMat;
     let lineMats = [];
     let ticks = [];
+    let labels = [];
+    let modelInputs = [];
 
     let beam;
     let clickColor = new THREE.Color(0x0000ff);
@@ -140,7 +141,6 @@
             // model.scale(new THREE.Vector3(3,1,1))
 
             scene.add(model)
-            console.log(model)
         }, undefined, function ( error ) {
 
             console.error( error );
@@ -244,8 +244,6 @@
         // const directionalLightHelper = new THREE.PointLightHelper(dirLight1, 20);
         // scene.add( directionalLightHelper );
 
-        //
-
         window.addEventListener( 'resize', resizeCanvasToDisplaySize );
         document.addEventListener( 'mousemove', onMouseMove );
         canvas.addEventListener( 'click', onClick );
@@ -343,106 +341,6 @@
             }
         });
     }
-
-    // function animateCamera(camPosition, posTarget, camRotation, rotTarget, options){
-    //     options = options || {};
-    //     // get targets from options or set to defaults
-    //     var posTo = posTarget || THREE.Vector3(),
-    //         easing = options.easing || TWEEN.Easing.Quadratic.In,
-    //         duration = options.duration || 2000;
-
-    //     // // get targets from options or set to defaults
-    //     // var rotTo = rotTarget || THREE.Vector3(),
-    //     //     easing = options.easing || TWEEN.Easing.Quadratic.In,
-    //     //     duration = options.duration || 2000;
-
-    //     // tween camera position
-    //     var tweenCameraPosition = new TWEEN.Tween(camPosition)
-    //         .to({ x: posTo.x, y: posTo.y, z: posTo.z, }, duration)
-    //         .easing(easing)
-    //         .onUpdate(function(d) {
-    //             if(options.update){ 
-    //                 options.update(d);
-    //             }
-    //         })
-    //         .onComplete(function(){
-    //         if(options.callback) options.callback();
-    //         });
-        
-    //     // // tween camera rotation
-    //     // var tweenCameraRotation = new TWEEN.Tween(camRotation)
-    //     //     .to({ x: rotTo.x, y: rotTo.y, z: rotTo.z, }, duration)
-    //     //     .easing(easing)
-    //     //     .onUpdate(function(d) {
-    //     //         if(options.update){ 
-    //     //             options.update(d);
-    //     //         }
-    //     //     })
-    //     //     .onComplete(function(){
-    //     //     if(options.callback) options.callback();
-    //     //     });
-
-    //     // start the tween
-    //     tweenCameraPosition.start();
-    //     // tweenCameraRotation.start();
-
-    //     // return the tween in case we want to manipulate it later on
-    //     return tweenCameraPosition;
-    // }
-
-    // function animateMaterialColor(material, opacityTarget, options){
-    //     options = options || {};
-
-    //     // get targets from options or set to defaults
-    //     var opacityTo = opacityTarget,
-    //         easing = options.easing || TWEEN.Easing.Quadratic.In,
-    //         duration = options.duration || 2000;
-
-    //     // tween camera position
-    //     var tweenMeshColor = new TWEEN.Tween(material)
-    //         .to({ opacity: opacityTo }, duration)
-    //         .easing(easing)
-    //         .onUpdate(function(d) {
-    //             if(options.update){ 
-    //                 options.update(d);
-    //             }
-    //         })
-    //         .onComplete(function(){
-    //         if(options.callback) options.callback();
-    //         });
-
-    //     // start the tween
-    //     tweenMeshColor.start();
-
-    //     return tweenMeshColor;
-    // }
-
-    // function animateClippingPlane(planeLocation, locationTarget, options){
-    //     options = options || {};
-
-    //     // get targets from options or set to defaults
-    //     var location = locationTarget,
-    //         easing = options.easing || TWEEN.Easing.Quadratic.In,
-    //         duration = options.duration || 2000;
-
-    //     // tween camera position
-    //     var tweenClippingPlane = new TWEEN.Tween(planeLocation)
-    //         .to({ constant: location }, duration)
-    //         .easing(easing)
-    //         .onUpdate(function(d) {
-    //             if(options.update){ 
-    //                 options.update(d);
-    //             }
-    //         })
-    //         .onComplete(function(){
-    //         if(options.callback) options.callback();
-    //         });
-
-    //     // start the tween
-    //     tweenClippingPlane.start();
-
-    //     return tweenClippingPlane;
-    // }
 
     function animateObject(object, targets, options){
         options = options || {};
@@ -542,6 +440,48 @@
         // scene.add( line );
     }
 
+    function createModelInput(element, attribute, index, text) {
+        var parentNode = document.createElement('div');
+        parentNode.setAttribute('id', element + '-' + attribute + '-' + index + '-div');
+
+        var childNode = document.createElement('span')
+        childNode.setAttribute('id', element + '-' + attribute + '-' + index + '-span');
+        childNode.setAttribute('class', 'model-input');
+        childNode.setAttribute('onfocus', 'selectElementContents(this)');
+        childNode.contentEditable = 'true';
+
+        var newElementText = document.createTextNode(text);
+        childNode.appendChild(newElementText);
+
+        parentNode.appendChild(childNode);
+        modelInputs.push(parentNode);
+        document.getElementById('model-input-parent').append(parentNode);
+    }
+
+    function updateModelInputText(element, attribute, index, text) {
+        var childNode = document.getElementById(element + '-' + attribute + '-' + index + '-span');
+
+        // update text
+        childNode.innerText = childNode.textContent = String(text);
+    }
+
+    function updateModelInputLocation(element, attribute, index, location) {
+        var rect = renderer.domElement.getBoundingClientRect();
+        var parentNode = document.getElementById(element + '-' + attribute + '-' + index + '-div');
+
+        // update font size
+        parentNode.style.fontSize = 1 / multiplier * 25 + 'px'; // maybe change this from px to have a more scalable webpage
+        
+        // update font location
+        var vect = createVector(location.x, location.y, location.z, camera, rect.width, rect.height);
+        parentNode.style.top = vect.y + rect.top + 'px';
+        parentNode.style.left = vect.x  - parentNode.clientWidth / 2 + rect.left + 'px'; 
+    }
+
+    function getThreeJSCoordinate(num) {
+        return num / beam.L * 200 - 100;
+    }
+
     function createVector(x, y, z, camera, width, height) {
         var p = new THREE.Vector3(x, y, z);
         var temp = new THREE.Vector3(0,0,0);
@@ -583,15 +523,33 @@
             camera.lookAt(initialCamPos.x*multiplier, 0, initialCamPos.z*multiplier);
             camera.rotation.set(initialCamRot.x, initialCamRot.y, initialCamRot.z);
 
-            //calculate text locations
-            var rect = canvas.getBoundingClientRect();
-            var beamLenTag = document.getElementById('beamLenTag');
-            // beamLenTag.innerHTML = beam.L;
-            beamLenTag.style.fontSize = 1 / multiplier * 25 + 'px'; // maybe change this from px to have a more scalable webpage
-            var vect = createVector(100, 0, -29, camera, rect.width, rect.height);
+            // //calculate text locations
+            // var rect = canvas.getBoundingClientRect();
+            // var beamLenTag = document.getElementById('beamLenTag');
+            // // beamLenTag.innerHTML = beam.L;
+            // beamLenTag.style.fontSize = 1 / multiplier * 25 + 'px'; // maybe change this from px to have a more scalable webpage
+            // var vect = createVector(100, 0, -29, camera, rect.width, rect.height);
 
-            beamLenTag.style.top = vect.y + rect.top + 'px';
-            beamLenTag.style.left = vect.x  - beamLenTag.clientWidth / 2 + rect.left + 'px';      
+            // beamLenTag.style.top = vect.y + rect.top + 'px';
+            // beamLenTag.style.left = vect.x  - beamLenTag.clientWidth / 2 + rect.left + 'px';      
+
+            // for (var i = 0; i < beam.supports.length; i++) {
+
+            //     updateModelInputLocation('support', 'location', i, new THREE.Vector3(getThreeJSCoordinate(beam.supports[i].location), 0, -29));
+            // }
+            for (var i = 0; i < beam.supports.length; i++) {
+                updateModelInputLocation('support', 'location', i, new THREE.Vector3(getThreeJSCoordinate(beam.supports[i].location), 0, -30));
+            }
+            for (var i = 0; i < beam.PLs.length; i++) {
+                updateModelInputLocation('point', 'startLocation', i, new THREE.Vector3(getThreeJSCoordinate(beam.PLs[i].startLocation), 0, -30));
+            }
+            for (var i = 0; i < beam.DLs.length; i++) {
+                updateModelInputLocation('dist', 'startLocation', i, new THREE.Vector3(getThreeJSCoordinate(beam.DLs[i].startLocation), 0, -30));
+                updateModelInputLocation('dist', 'endLocation', i, new THREE.Vector3(getThreeJSCoordinate(beam.DLs[i].endLocation), 0, -30));
+            }
+            // updateModelInputLocation('support', 'location', 0, new THREE.Vector3(-100, 0, -29));
+            // updateModelInputLocation('support', 'location', 1, new THREE.Vector3(100, 0, -29));
+            
         }
         // this must happen even if canvas doesn't resize, so put it outside the if statement
         for (var i=0; i<lineMats.length; i++) {

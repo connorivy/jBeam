@@ -850,8 +850,10 @@
       </div>
       <!-- End Three JS canvas -->
 
-      <div id="beamLenTag" style="position: absolute; line-height: 1em;">
-        <span class="input border-transparent model-input" roll="textbox" id="beamLen" style="margin: auto; line-height: 1em;" onfocus="selectElementContents(this);" contenteditable></span>
+      <div id="model-input-parent">
+        <div id="beamLenTag">
+          <span class="input border-transparent model-input" id="beamLen" onfocus="selectElementContents(this);" contenteditable></span>
+        </div>
       </div>
       {% block pagetables %} {% endblock pagetables %}
 

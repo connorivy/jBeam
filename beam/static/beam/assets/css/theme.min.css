@@ -76,6 +76,18 @@ table td:hover {
     background-color: rgba(0,0,0,.075);
 }
 
+/* Model Area */
+
+.model-input {
+    margin: auto;
+    line-height: 1em;
+}
+
+#model-input-parent > div {
+    position: absolute;
+    line-height: 1em;
+}
+
 /* .rotated {
     transform: rotate(355deg);
 } */
